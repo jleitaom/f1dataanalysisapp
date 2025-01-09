@@ -352,41 +352,6 @@ def main():
                 height=800,                    # Increase height for larger bars
                 xaxis=dict(tickvals=list(range(0, int(max(session.laps["LapNumber"])) + 1, 5)))  # Adjust x-axis tick intervals
             )
-
-            # Show in Streamlit
-            st.plotly_chart(fig)
-
-            # Get weather data and add lap numbers if not already present
-            weather_data = session.laps.get_weather_data()
-
-            # Create a line chart for humidity
-            fig = go.Figure()
-
-            fig.add_trace(
-                go.Scatter(
-                    x=session.laps['LapNumber'],  # x-axis as Lap Number
-                    y=weather_data['Humidity'],   # y-axis as Humidity
-                    mode='lines',                  # Line chart
-                    name='Humidity',
-                    line=dict(color='blue')
-                )
-            )
-
-            # Update layout to add titles, labels, and background styling
-            fig.update_layout(
-                title="Humidity by Lap Number",
-                xaxis_title="Lap Number",
-                yaxis_title="Humidity (%)",
-                plot_bgcolor="rgb(15, 17, 22)",
-                paper_bgcolor="rgb(15, 17, 22)",
-                font=dict(color="white")
-            )
-
-            # Customize grid color for better readability
-            fig.update_xaxes(gridcolor="gray")
-            fig.update_yaxes(gridcolor="gray")
-
-            # Display the plot in Streamlit
             st.plotly_chart(fig)
                         
 if __name__ == "__main__":
