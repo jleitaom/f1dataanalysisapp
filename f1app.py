@@ -92,17 +92,6 @@ def main():
                                         "Tyre & Laptime Performance",
                                         "Tyre Strategy"
                                         ])
-        
-        # ---------Championship Results (Driver and Constructors)---------
-            # ---------Driver championship points---------
-            # ---------Constructors championship points---------
-
-        # ---------Sector Performance ('Q')---------
-
-        # ---------Tyre Strategy -> faltam os gráficos de weather(with weather and car data analysis) ('Q' 'R')---------        
-        # ---------Max Speed vs Laptime ('Q' 'R')---------
-        # ---------Driver positions by lap ('R')---------
-        #---------Introduzir um LLM (RAG) que comunica com a API para responder a questões relativas a F1---------
 
         with tab1:
 
