@@ -345,8 +345,6 @@ def main():
                 xaxis_title="Lap Number",
                 yaxis_title="Driver",
                 barmode='stack',
-                plot_bgcolor="rgb(15, 17, 22)",
-                paper_bgcolor="rgb(15, 17, 22)",
                 font=dict(color="white"),
                 legend_traceorder="normal",
                 height=800,                    # Increase height for larger bars
