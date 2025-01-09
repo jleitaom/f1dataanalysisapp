@@ -15,9 +15,6 @@ from matplotlib.collections import LineCollection
 from matplotlib import cm
 import seaborn as sns
 
-# enable FastF1 cache
-ff1.Cache.enable_cache('cache')
-
 # Enable Matplotlib patches for plotting timedelta values and load
 # FastF1's dark color scheme
 fastf1.plotting.setup_mpl(mpl_timedelta_support=True, misc_mpl_mods=False, color_scheme='fastf1')
