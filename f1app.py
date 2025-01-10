@@ -61,7 +61,7 @@ def main():
     current_year = datetime.now().year
 
     # select session
-    year = st.sidebar.selectbox("Select year", range(current_year, 2015, -1))
+    year = st.sidebar.selectbox("Select year", range(current_year-1, 2015, -1))
 
     # get available gp for the selected year
     schedule = ff1.get_event_schedule(year)
