@@ -150,12 +150,21 @@ def main():
                     # get driver colors
                     driver_colors = get_driver_colors(session)
 
+                    def format_time(time_obj):
+                        if pd.isna(time_obj):
+                            return "N/A"
+                        try:
+                            minutes, seconds = divmod(float(time_obj.total_seconds()), 60)
+                            return f"{int(minutes):02}:{seconds:05.3f}"
+                        except AttributeError:
+                            return time_obj
+
                     # Display best lap time for each driver
                     st.write("**Best Lap Times**")
                     for driver in selected_drivers:
                         laps = session.laps.pick_drivers(driver).pick_fastest()
-                        best_lap_time = laps['LapTime']
-                        formatted_time = format_time(best_lap_time)
+                        best_lap_time = laps['LapTime']  # This is likely a single Timedelta object
+                        formatted_time = format_time(best_lap_time)  # Call format_time directly
                         st.write(f"**{driver}**: {formatted_time}")
 
                     # create figure with subplots
