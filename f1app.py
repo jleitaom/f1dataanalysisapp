@@ -149,7 +149,15 @@ def main():
                 if selected_drivers:
                     # get driver colors
                     driver_colors = get_driver_colors(session)
-                    
+
+                    # Display best lap time for each driver
+                    st.write("**Best Lap Times**")
+                    for driver in selected_drivers:
+                        laps = session.laps.pick_drivers(driver).pick_fastest()
+                        best_lap_time = laps['LapTime']
+                        formatted_time = format_time(best_lap_time)
+                        st.write(f"**{driver}**: {formatted_time}")
+
                     # create figure with subplots
                     fig = make_subplots(
                         rows=3, cols=1,
@@ -162,7 +170,7 @@ def main():
                         laps = session.laps.pick_drivers(driver).pick_fastest()
                         telemetry = laps.get_car_data().add_distance()
                         color = '#' + driver_colors[driver]
-                        
+
                         # speed plot
                         fig.add_trace(
                             go.Scatter(
@@ -242,7 +250,7 @@ def main():
                     fig.update_yaxes(title_text="Speed", row=1, col=1)
                     fig.update_yaxes(title_text="Throttle", row=2, col=1)
                     fig.update_yaxes(title_text="Brake", row=3, col=1)
-                    
+
                     st.plotly_chart(fig, use_container_width=True)
             
             except Exception as e:
