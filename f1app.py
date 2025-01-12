@@ -75,6 +75,8 @@ def main():
         }[x]
     )
 
+    st.sidebar.write("Note: data could take a few seconds to connect with API and load.")
+
     # load session data
     session = load_session(year, selected_gp, selected_session)
 
@@ -94,7 +96,7 @@ def main():
                     session.results["WL_positions"] = session.results["GridPosition"] - session.results["Position"]
                     session.results["WL_positions"] = session.results["WL_positions"].fillna(0).astype(float).astype(int).astype(str)
                     not_finished = session.results["Status"] != "Finished"
-                    session.results.loc[not_finished, "WL_positions"] = ("(" + session.results["WL_positions"].astype(str) + ")" + " " + session.results["Status"])
+                    session.results.loc[not_finished, "WL_positions"] = (session.results["WL_positions"].astype(str) + " (" + session.results["Status"] + ")")
                     results_data = {
                         'Position': session.results['Position'].fillna(0).astype(float).astype(int).astype(str),
                         'Name': session.results['FullName'],
@@ -140,7 +142,8 @@ def main():
                 selected_drivers = st.multiselect(
                     "Select Drivers to Compare",
                     drivers,
-                    key="tab2_multiselect"
+                    key="tab2_multiselect",
+                    max_selections=2
                 )
 
                 if selected_drivers:
@@ -296,6 +299,7 @@ def main():
                 return None
         
         with tab4:
+            st.write("Driver Stints by Compound")
             try:
 
                 # sort drivers by finishing position
@@ -348,11 +352,9 @@ def main():
 
                 # update layout for improved readability and appearance
                 fig.update_layout(
-                    title="Driver Stints by Compound",
                     xaxis_title="Lap Number",
                     yaxis_title="Driver",
                     barmode='stack',
-
                     font=dict(color="white"),
                     legend_traceorder="normal",
                     height=800,
