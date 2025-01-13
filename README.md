@@ -1,4 +1,4 @@
-# Interactive Formula 1 Data Analysis Tool
+# 🏎️ Interactive Formula 1 Data Analysis Tool
 
 ### Description:
 
