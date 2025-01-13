@@ -1,4 +1,3 @@
-# TESTE
 import streamlit as st
 import fastf1 as ff1
 import fastf1.plotting
