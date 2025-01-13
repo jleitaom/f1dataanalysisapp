@@ -4,7 +4,7 @@
 
 - Web application for analyzing Formula 1 data, coded in Python using Streamlit and FastF1 API.
 
-- The purpose of this tool is to explore session data, driver telemetry, tire performance and strategies across various Grand Prix events. It provides an intuitiveand interactive interface, making the data accessible to enthusiasts and analysts alike.
+- The purpose of this tool is to explore session data, driver telemetry, tire performance and strategies across various Grand Prix events. It provides an intuitive and interactive interface, making the data accessible to enthusiasts and analysts alike.
 
 - **Streamlit App**: https://f1dataanalysisapp.streamlit.app/
 
