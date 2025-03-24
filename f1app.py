@@ -63,14 +63,16 @@ def main():
     gp_names = schedule['EventName'].tolist()
     selected_gp = st.sidebar.selectbox("Select Grand Prix", gp_names)
 
-    session_types = ['R', 'Q', 'S']
+    session_types = ['R', 'Q', 'S', 'SS', 'SQ']
     selected_session = st.sidebar.selectbox(
         "Select Session",
         session_types,
         format_func = lambda x: {
             'R': 'Race',
             'Q': 'Qualifying',
-            'S': 'Sprint'
+            'S': 'Sprint',
+            'SS': 'Sprint Shootout',
+            'SQ': 'Sprint Qualifying'
         }[x]
     )
 
