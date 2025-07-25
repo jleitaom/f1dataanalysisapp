@@ -19,6 +19,7 @@ import seaborn as sns
 fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme='fastf1')
 
 # load session data function
+@st.cache_resource(show_spinner="Loading session data...")
 def load_session(year, gp_name, session_type):
     try:
         session = ff1.get_session(year, gp_name, session_type)
