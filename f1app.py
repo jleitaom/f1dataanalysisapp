@@ -14,7 +14,7 @@ from matplotlib.collections import LineCollection
 from matplotlib import cm
 import seaborn as sns
 
-# FastF1's dark color scheme
+# FastF1's delta and dark color scheme
 fastf1.plotting.setup_mpl(mpl_timedelta_support=True, misc_mpl_mods=False, color_scheme='fastf1')
 
 # load session data function
@@ -47,39 +47,63 @@ def get_driver_colors(session):
 
     return driver_colors
 
+
+# main function to run the app
 def main():
-    st.title("🏎️ Formula 1 Data Analysis")
+    st.title("🏎️ Formula 1 Data App")
     st.sidebar.header("🏁 Session")
+
+    # initialize session variable
+    session = None
 
     # get current year
     current_year = datetime.now().year
 
     # select session
-    year = st.sidebar.selectbox("Select year", range(current_year, 2015, -1))
-
-    # get available gp for the selected year
-    schedule = ff1.get_event_schedule(year)
-    schedule = schedule.sort_values('RoundNumber', ascending=False)
-    gp_names = schedule['EventName'].tolist()
-    selected_gp = st.sidebar.selectbox("Select Grand Prix", gp_names)
-
-    session_types = ['R', 'Q', 'S', 'SS', 'SQ']
-    selected_session = st.sidebar.selectbox(
-        "Select Session",
-        session_types,
-        format_func = lambda x: {
-            'R': 'Race',
-            'Q': 'Qualifying',
-            'S': 'Sprint',
-            'SS': 'Sprint Shootout',
-            'SQ': 'Sprint Qualifying'
-        }[x]
+    selected_year = st.sidebar.selectbox(
+        "Select year", 
+        range(current_year, 2015, -1),
+        index=None,
+        placeholder="Select a year"
     )
 
-    st.sidebar.write("Note: data could take a few seconds to connect with API and load.")
+    if selected_year is None:
+        st.sidebar.warning("Please select a year to continue.")
+
+    else:
+        # get available gp for the selected year
+        schedule = ff1.get_event_schedule(selected_year)
+        schedule = schedule.sort_values('RoundNumber', ascending=False)
+        gp_names = schedule['EventName'].tolist()
+
+        selected_gp = st.sidebar.selectbox(
+            "Select Grand Prix", 
+            gp_names,
+            index=None,
+            placeholder="Select a Grand Prix"
+        )
+
+        session_types = ['R', 'Q', 'S', 'SS', 'SQ']
+        selected_session = st.sidebar.selectbox(
+            "Select Session",
+            session_types,
+            index=None,
+            placeholder="Select a session",
+            format_func = lambda x: {
+                'R': 'Race',
+                'Q': 'Qualifying',
+                'S': 'Sprint',
+                'SS': 'Sprint Shootout',
+                'SQ': 'Sprint Qualifying'
+            }[x]
+        )
+
+        st.sidebar.markdown("**Please note:** Loading data may take a few seconds depending on your internet connection and API response time.")
 
     # load session data
-    session = load_session(year, selected_gp, selected_session)
+    if selected_year and selected_gp and selected_session:
+        session = load_session(selected_year, selected_gp, selected_session)
+
 
     if session:
 
@@ -317,6 +341,7 @@ def main():
                 return None
         
         with tab4:
+
             st.write("Driver Stints by Compound")
             try:
 
@@ -384,7 +409,10 @@ def main():
             except Exception as e:
                 st.error(f'No session data {str(e)}')
                 return None
-                     
+
+    else:
+        st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
+
 if __name__ == "__main__":
     st.set_page_config(
         page_title="F1 Data Analysis",
