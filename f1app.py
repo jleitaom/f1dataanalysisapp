@@ -15,7 +15,7 @@ from matplotlib import cm
 import seaborn as sns
 
 # FastF1's delta and dark color scheme
-fastf1.plotting.setup_mpl(mpl_timedelta_support=True, misc_mpl_mods=False, color_scheme='fastf1')
+fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme='fastf1')
 
 # load session data function
 def load_session(year, gp_name, session_type):
