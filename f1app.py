@@ -15,9 +15,6 @@ from matplotlib import cm
 import seaborn as sns
 
 
-
-st.write(st.get_option("theme"))
-
 # FastF1's delta and dark color scheme
 fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme='fastf1')
 
