@@ -5,9 +5,9 @@ from fastf1.plotting import get_driver_color
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import plotly.express as px
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
 from matplotlib.collections import LineCollection
@@ -52,10 +52,15 @@ def get_driver_colors(session):
 
 # main function to run the app
 def main():
-    st.title("🏎️ Formula 1 Data App")
+    st.title("🏎️ F1 Data App")
     st.sidebar.header("🏁 Session")
+    st.sidebar.markdown("Use the sidebar to select the season year, Grand Prix, and session type you want to analyze!")
+    st.sidebar.markdown(" ")
 
-    # initialize session variable
+    # initialize session variables
+    selected_year = None
+    selected_gp = None
+    selected_session = None
     session = None
 
     # get current year
@@ -71,36 +76,60 @@ def main():
 
     if selected_year is None:
         st.sidebar.warning("Please select a year to continue.")
+        return
 
+    # load schedule for the selected year and get available gp for the selected year
+    schedule = ff1.get_event_schedule(selected_year)
+    schedule = schedule.sort_values('RoundNumber', ascending=False)
+    schedule = schedule.iloc[1:]
+    gp_names = schedule['EventName'].tolist()
+    official_names = schedule['OfficialEventName'].tolist()
+    official_dates = schedule['EventDate'].dt.date.tolist()
+
+    # select gp
+    selected_gp = st.sidebar.selectbox(
+        "Select Grand Prix", 
+        gp_names,
+        index=None,
+        placeholder="Select a Grand Prix"
+    )
+
+    if selected_gp is None:
+        st.sidebar.warning("Please select a Grand Prix to continue.")
+        return
+    
+    st.markdown(f"**Official Event Name:** {official_names[gp_names.index(selected_gp)]}")
+    st.markdown(f"**Official Event Date:** {official_dates[gp_names.index(selected_gp)]}")
+
+    # get available session types for the selected gp
+    round_number = schedule[schedule['EventName'] == selected_gp]['RoundNumber'].values[0]
+    event = ff1.get_event(selected_year, int(round_number))
+    
+    if event.EventFormat == "conventional":
+        session_names = ['R', 'Q']
     else:
-        # get available gp for the selected year
-        schedule = ff1.get_event_schedule(selected_year)
-        schedule = schedule.sort_values('RoundNumber', ascending=False)
-        gp_names = schedule['EventName'].tolist()
+        session_names = ['R', 'Q', 'S', 'SQ']
+    
+    # select session type
+    selected_session = st.sidebar.selectbox(
+    "Select Session",
+    session_names,
+    index=None,
+    placeholder="Select a session",
+    format_func = lambda x: {
+        'R': 'Race',
+        'Q': 'Qualifying',
+        'S': 'Sprint',
+        'SQ': 'Sprint Qualifying'
+    }[x]
+    )
+    
+    if selected_session is None:
+        st.sidebar.warning("Please select a session type to continue.")
+        return
 
-        selected_gp = st.sidebar.selectbox(
-            "Select Grand Prix", 
-            gp_names,
-            index=None,
-            placeholder="Select a Grand Prix"
-        )
-
-        session_types = ['R', 'Q', 'S', 'SS', 'SQ']
-        selected_session = st.sidebar.selectbox(
-            "Select Session",
-            session_types,
-            index=None,
-            placeholder="Select a session",
-            format_func = lambda x: {
-                'R': 'Race',
-                'Q': 'Qualifying',
-                'S': 'Sprint',
-                'SS': 'Sprint Shootout',
-                'SQ': 'Sprint Qualifying'
-            }[x]
-        )
-
-        st.sidebar.markdown("**Please note:** Loading data may take a few seconds depending on your internet connection and API response time.")
+    st.sidebar.markdown(" ")
+    st.sidebar.markdown("**Please note:** Loading data may take a few seconds depending on your internet connection and API response time.")
 
     # load session data
     if selected_year and selected_gp and selected_session:
@@ -120,18 +149,17 @@ def main():
         with tab1:
             try:
                 if selected_session == 'R' or selected_session == 'S':
-                    session.results["WL_positions"] = session.results["GridPosition"] - session.results["Position"]
-                    session.results["WL_positions"] = session.results["WL_positions"].fillna(0).astype(float).astype(int).astype(str)
-                    not_finished = session.results["Status"] != "Finished"
-                    session.results.loc[not_finished, "WL_positions"] = (session.results["WL_positions"].astype(str) + " (" + session.results["Status"] + ")")
+                    session.results["WL_positions"] = (session.results["GridPosition"] - session.results["Position"]).fillna(0).astype(int)
+
                     results_data = {
-                        'Position': session.results['Position'].fillna(0).astype(float).astype(int).astype(str),
+                        'Position': session.results['Position'].fillna(0).astype(int).astype(str),
                         'Name': session.results['FullName'],
                         'Team': session.results['TeamName'],
-                        'Grid Position': session.results["GridPosition"].fillna(0).astype(float).astype(int).astype(str),
-                        'Positions Gained/Lost': session.results["WL_positions"],
+                        'Grid Position': session.results["GridPosition"].fillna(0).astype(int).astype(str),
+                        'Positions Gained/Lost': session.results["WL_positions"].astype(str),
                         'Status & Occurrences': session.results['Status']
                     }
+
                 else:
                     def format_time(time_str):
                         if pd.isna(time_str):
@@ -143,7 +171,7 @@ def main():
                             return time_str
                         
                     results_data = {
-                        'Position': session.results['Position'].astype(float).astype(int).astype(str),
+                        'Position': session.results['Position'].astype(int).astype(str),
                         'Name': session.results['FullName'],
                         'Team': session.results['TeamName'],
                         'Q1': session.results['Q1'].apply(format_time),
