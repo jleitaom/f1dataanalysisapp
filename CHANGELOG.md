@@ -11,7 +11,7 @@ All major/notable changes to this project will be documented in this file.
   - Data loading spinner to clearly indicate data loading status
 
 ### Changed
-- Major internal refactor to improve code readability and maintainability
+- Major code refactor to improve readability and maintainability
 - Sidebar warning message updated to clearly indicate that data loading can take a few seconds
 - Updated app theme colors for aesthetic purposes
 
