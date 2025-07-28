@@ -3,14 +3,10 @@ import fastf1 as ff1
 import fastf1.plotting
 from fastf1.plotting import get_driver_color
 import pandas as pd
-import numpy as np
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from matplotlib import pyplot as plt
-from matplotlib.pyplot import figure
-from matplotlib.collections import LineCollection
 
 
 # FastF1's delta and dark color scheme
