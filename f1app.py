@@ -11,8 +11,6 @@ from plotly.subplots import make_subplots
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
 from matplotlib.collections import LineCollection
-from matplotlib import cm
-import seaborn as sns
 
 
 # FastF1's delta and dark color scheme
