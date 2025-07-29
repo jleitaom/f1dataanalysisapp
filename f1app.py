@@ -1,7 +1,7 @@
 import streamlit as st
 import fastf1 as ff1
 import fastf1.plotting
-from fastf1.plotting import get_driver_color
+from fastf1.plotting import get_driver_style
 import pandas as pd
 from datetime import datetime
 import plotly.express as px
@@ -22,27 +22,6 @@ def load_session(year, gp_name, session_type):
     except Exception as e:
         st.error(f'Error loading session {str(e)}')
         return None
-
-# get driver colors function
-def get_driver_colors(session):
-    driver_colors = {}
-    used_colors = set()
-
-    for _, row in session.results.iterrows():
-        abbreviation = row['Abbreviation']
-
-        # fetch driver color
-        color = get_driver_color(abbreviation, session).lstrip('#')
-
-        # check for duplicates
-        if color in used_colors:
-            color = '808080'
-
-        driver_colors[abbreviation] = color
-        used_colors.add(color)
-
-    return driver_colors
-
 
 # main function to run the app
 def main():
@@ -92,8 +71,7 @@ def main():
         st.sidebar.warning("Please select a Grand Prix to continue.")
         return
     
-    st.markdown(f"**Official Event Name:** {official_names[gp_names.index(selected_gp)]}")
-    st.markdown(f"**Official Event Date:** {official_dates[gp_names.index(selected_gp)]}")
+    st.markdown(f"{official_names[gp_names.index(selected_gp)]}")
 
     # get available session types for the selected gp
     round_number = schedule[schedule['EventName'] == selected_gp]['RoundNumber'].values[0]
@@ -197,7 +175,21 @@ def main():
 
                 if selected_drivers:
                     # get driver colors
-                    driver_colors = get_driver_colors(session)
+                    driver_styles = {
+                        drv: get_driver_style(drv, session=session, style=['color', 'linestyle']) for drv in selected_drivers
+                    }
+
+                    # get drivers teams
+                    driver_teams = {
+                        drv: session.results.loc[session.results['Abbreviation'] == drv, 'TeamName'].values[0]
+                        for drv in selected_drivers
+                    }
+
+                    # check if both drivers are from the same team
+                    same_team = (
+                        len(selected_drivers) == 2 and
+                        driver_teams[selected_drivers[0]] == driver_teams[selected_drivers[1]]
+                    )
 
                     def format_time(time_obj):
                         if pd.isna(time_obj):
@@ -224,10 +216,30 @@ def main():
                         subplot_titles=('Speed', 'Throttle', 'Brake')
                     )
                     
-                    for driver in selected_drivers:
+                    linestyle_map = {
+                        'solid': 'solid',
+                        'dashed': 'dash',
+                        'dash': 'dash',
+                        'dotted': 'dot',
+                        'dot': 'dot',
+                        'dashdot': 'dashdot',
+                        'dash-dot': 'dashdot',
+                        'longdash': 'longdash',
+                        'longdashdot': 'longdashdot'
+                    }
+
+
+                    for i, driver in enumerate(selected_drivers):
                         laps = session.laps.pick_drivers(driver).pick_fastest()
                         telemetry = laps.get_car_data().add_distance()
-                        color = '#' + driver_colors[driver]
+
+                        color = driver_styles[driver]['color']
+                        if same_team and i == 1:
+                            color = '#FFFFFF'
+
+                        raw_dash = driver_styles[driver]['linestyle']
+                        dash = linestyle_map.get(raw_dash, 'solid')
+
 
                         # speed plot
                         fig.add_trace(
