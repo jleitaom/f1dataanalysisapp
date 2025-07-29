@@ -3,6 +3,7 @@ import fastf1 as ff1
 import fastf1.plotting
 from fastf1.plotting import get_driver_style
 import pandas as pd
+import numpy as np
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
@@ -208,120 +209,257 @@ def main():
                         formatted_time = format_time(best_lap_time)  # Call format_time directly
                         st.write(f"**{driver}**: {formatted_time}")
 
-                    # create figure with subplots
-                    fig = make_subplots(
-                        rows=3, cols=1,
-                        shared_xaxes=True,
-                        vertical_spacing=0.1,
-                        subplot_titles=('Speed', 'Throttle', 'Brake')
-                    )
-                    
-                    linestyle_map = {
-                        'solid': 'solid',
-                        'dashed': 'dash',
-                        'dash': 'dash',
-                        'dotted': 'dot',
-                        'dot': 'dot',
-                        'dashdot': 'dashdot',
-                        'dash-dot': 'dashdot',
-                        'longdash': 'longdash',
-                        'longdashdot': 'longdashdot'
-                    }
 
+                    if len(selected_drivers) == 2:
 
-                    for i, driver in enumerate(selected_drivers):
-                        laps = session.laps.pick_drivers(driver).pick_fastest()
-                        telemetry = laps.get_car_data().add_distance()
-
-                        color = driver_styles[driver]['color']
-                        if same_team and i == 1:
-                            color = '#FFFFFF'
-
-                        raw_dash = driver_styles[driver]['linestyle']
-                        dash = linestyle_map.get(raw_dash, 'solid')
-
-
-                        # speed plot
-                        fig.add_trace(
-                            go.Scatter(
-                                x=telemetry['Distance'],
-                                y=telemetry['Speed'],
-                                name=driver,
-                                mode='lines',
-                                line=dict(color=color),
-                                showlegend=True,
-                                legendgroup="speed",
-                                legendgrouptitle_text="Speed",
-                                hovertemplate=
-                                "<b>%{fullData.name}</b><br>" +
-                                "Distance: %{x:.0f}m<br>" +
-                                "Speed: %{y:.1f}km/h<br>" +
-                                "<extra></extra>"
-                            ),
-                            row=1, col=1
+                        # create figure with 4 subplots
+                        fig = make_subplots(
+                            rows=4, cols=1,
+                            shared_xaxes=True,
+                            vertical_spacing=0.03
                         )
-                        
-                        # throttle plot
+
+
+                        driver1, driver2 = selected_drivers
+                        laps1 = session.laps.pick_drivers(driver1).pick_fastest()
+                        laps2 = session.laps.pick_drivers(driver2).pick_fastest()
+
+                        tel1 = laps1.get_car_data().add_distance()
+                        tel2 = laps2.get_car_data().add_distance()
+
+                        # Interpolate driver2's time to match driver1's distance
+                        tel1_dist = tel1['Distance']
+                        tel1_time = tel1['Time'].dt.total_seconds()
+                        tel2_time_interp = np.interp(
+                            x=tel1_dist,
+                            xp=tel2['Distance'],
+                            fp=tel2['Time'].dt.total_seconds()
+                        )
+
+                        delta_time = tel2_time_interp - tel1_time  # Positive: driver2 is behind
+
+                        # Horizontal reference at 0
                         fig.add_trace(
                             go.Scatter(
-                                x=telemetry['Distance'],
-                                y=telemetry['Throttle'],
-                                name=driver,
+                                x=tel1_dist,
+                                y=[0] * len(tel1_dist),
                                 mode='lines',
-                                line=dict(color=color),
+                                name='Zero Δt',
+                                line=dict(color='gray', width=1),
+                                hoverinfo='skip',
+                                showlegend=False
+                            ),
+                            row=2, col=1
+                        )
+
+                        fig.add_trace(
+                            go.Scatter(
+                                x=tel1_dist,
+                                y=delta_time,
+                                mode='lines',
+                                name=f"{driver2} vs {driver1}",
+                                line=dict(color=driver_styles[driver2]['color'], dash='dot'),
                                 showlegend=True,
-                                legendgroup="throttle",
-                                legendgrouptitle_text="Throttle",
+                                legendgroup="delta",
+                                legendgrouptitle_text="Delta Time",
                                 hovertemplate=
-                                "<b>%{fullData.name}</b><br>" +
                                 "Distance: %{x:.0f}m<br>" +
-                                "Throttle: %{y:.0f}%<br>" +
+                                "Delta: %{y:.3f}s<br>" +
                                 "<extra></extra>"
                             ),
                             row=2, col=1
                         )
-                        
-                        # brake plot
-                        fig.add_trace(
-                            go.Scatter(
-                                x=telemetry['Distance'],
-                                y=telemetry['Brake'],
-                                name=driver,
-                                mode='lines',
-                                line=dict(color=color),
-                                showlegend=True,
-                                legendgroup="brake",
-                                legendgrouptitle_text="Brake",
-                                hovertemplate=
-                                "<b>%{fullData.name}</b><br>" +
-                                "Distance: %{x:.0f}m<br>" +
-                                "Brake: %{y:.0f}%<br>" +
-                                "<extra></extra>"
-                            ),
-                            row=3, col=1
-                        )
-                    
-                    # update layout
-                    fig.update_layout(
-                        height=800,
-                        title="Fastest Lap Comparison",
-                        template="plotly_white",
-                        legend=dict(
-                            yanchor="top",
-                            y=0.99,
-                            xanchor="left",
-                            x=1.0
-                        ),
-                        hovermode='x unified'
-                    )
-                    
-                    # update axes labels
-                    fig.update_xaxes(title_text="Distance", row=3, col=1)
-                    fig.update_yaxes(title_text="Speed", row=1, col=1)
-                    fig.update_yaxes(title_text="Throttle", row=2, col=1)
-                    fig.update_yaxes(title_text="Brake", row=3, col=1)
 
-                    st.plotly_chart(fig, use_container_width=True)
+
+                        for i, driver in enumerate(selected_drivers):
+                            laps = session.laps.pick_drivers(driver).pick_fastest()
+                            telemetry = laps.get_car_data().add_distance()
+
+                            color = driver_styles[driver]['color']
+                            if same_team and i == 1:
+                                color = '#FFFFFF'
+
+                            # speed plot
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=telemetry['Distance'],
+                                    y=telemetry['Speed'],
+                                    name=driver,
+                                    mode='lines',
+                                    line=dict(color=color),
+                                    showlegend=True,
+                                    legendgroup="speed",
+                                    legendgrouptitle_text="Drivers",
+                                    hovertemplate=
+                                    "<b>%{fullData.name}</b><br>" +
+                                    "Distance: %{x:.0f}m<br>" +
+                                    "Speed: %{y:.1f}km/h<br>" +
+                                    "<extra></extra>"
+                                ),
+                                row=1, col=1
+                            )
+                            
+                            # throttle plot
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=telemetry['Distance'],
+                                    y=telemetry['Throttle'],
+                                    name=driver,
+                                    mode='lines',
+                                    line=dict(color=color),
+                                    showlegend=False,
+                                    legendgroup="throttle",
+                                    legendgrouptitle_text="Throttle",
+                                    hovertemplate=
+                                    "<b>%{fullData.name}</b><br>" +
+                                    "Distance: %{x:.0f}m<br>" +
+                                    "Throttle: %{y:.0f}%<br>" +
+                                    "<extra></extra>"
+                                ),
+                                row=3, col=1
+                            )
+                            
+                            # brake plot
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=telemetry['Distance'],
+                                    y=telemetry['Brake'],
+                                    name=driver,
+                                    mode='lines',
+                                    line=dict(color=color),
+                                    showlegend=False,
+                                    legendgroup="brake",
+                                    legendgrouptitle_text="Brake",
+                                    hovertemplate=
+                                    "<b>%{fullData.name}</b><br>" +
+                                    "Distance: %{x:.0f}m<br>" +
+                                    "Brake: %{y:.0f}%<br>" +
+                                    "<extra></extra>"
+                                ),
+                                row=4, col=1
+                            )
+                        
+                        # update layout
+                        fig.update_layout(
+                            height=800,
+                            title="Fastest Lap Comparison",
+                            template="plotly_white",
+                            legend=dict(
+                                yanchor="top",
+                                y=0.99,
+                                xanchor="left",
+                                x=1.0
+                            ),
+                            hovermode='x unified'
+                        )
+
+                        # update axes labels
+                        fig.update_yaxes(dtick=50, title_text="Speed", row=1, col=1)
+                        fig.update_yaxes(title_text="Delta", row=2, col=1)
+                        fig.update_yaxes(title_text="Throttle", row=3, col=1)
+                        fig.update_yaxes(title_text="Brake", row=4, col=1)
+                        fig.update_xaxes(title_text="Distance", row=4, col=1)
+
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    else:
+
+                        # create figure with 4 subplots
+                        fig = make_subplots(
+                            rows=3, cols=1,
+                            shared_xaxes=True,
+                            vertical_spacing=0.03
+                        )
+
+                        for i, driver in enumerate(selected_drivers):
+                            laps = session.laps.pick_drivers(driver).pick_fastest()
+                            telemetry = laps.get_car_data().add_distance()
+
+                            color = driver_styles[driver]['color']
+                            if same_team and i == 1:
+                                color = '#FFFFFF'
+
+                            # speed plot
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=telemetry['Distance'],
+                                    y=telemetry['Speed'],
+                                    name=driver,
+                                    mode='lines',
+                                    line=dict(color=color),
+                                    showlegend=True,
+                                    legendgroup="speed",
+                                    legendgrouptitle_text="Drivers",
+                                    hovertemplate=
+                                    "<b>%{fullData.name}</b><br>" +
+                                    "Distance: %{x:.0f}m<br>" +
+                                    "Speed: %{y:.1f}km/h<br>" +
+                                    "<extra></extra>"
+                                ),
+                                row=1, col=1
+                            )
+                            
+                            # throttle plot
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=telemetry['Distance'],
+                                    y=telemetry['Throttle'],
+                                    name=driver,
+                                    mode='lines',
+                                    line=dict(color=color),
+                                    showlegend=False,
+                                    legendgroup="throttle",
+                                    legendgrouptitle_text="Throttle",
+                                    hovertemplate=
+                                    "<b>%{fullData.name}</b><br>" +
+                                    "Distance: %{x:.0f}m<br>" +
+                                    "Throttle: %{y:.0f}%<br>" +
+                                    "<extra></extra>"
+                                ),
+                                row=2, col=1
+                            )
+                            
+                            # brake plot
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=telemetry['Distance'],
+                                    y=telemetry['Brake'],
+                                    name=driver,
+                                    mode='lines',
+                                    line=dict(color=color),
+                                    showlegend=False,
+                                    legendgroup="brake",
+                                    legendgrouptitle_text="Brake",
+                                    hovertemplate=
+                                    "<b>%{fullData.name}</b><br>" +
+                                    "Distance: %{x:.0f}m<br>" +
+                                    "Brake: %{y:.0f}%<br>" +
+                                    "<extra></extra>"
+                                ),
+                                row=3, col=1
+                            )
+                        
+                            # update layout
+                            fig.update_layout(
+                                height=800,
+                                title="Fastest Lap Comparison",
+                                template="plotly_white",
+                                legend=dict(
+                                    yanchor="top",
+                                    y=0.99,
+                                    xanchor="left",
+                                    x=1.0
+                                ),
+                                hovermode='x unified'
+                            )
+
+                        # update axes labels
+                        fig.update_yaxes(dtick=50, title_text="Speed", row=1, col=1)
+                        fig.update_yaxes(title_text="Throttle", row=2, col=1)
+                        fig.update_yaxes(title_text="Brake", row=3, col=1)
+                        fig.update_xaxes(title_text="Distance", row=3, col=1)
+
+                        st.plotly_chart(fig, use_container_width=True)
             
             except Exception as e:
                 st.error(f'No session data {str(e)}')
