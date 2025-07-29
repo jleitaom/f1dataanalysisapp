@@ -2,6 +2,10 @@
 
 All major/notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-07-25
+### Added
+- Added delta time chart to telemetry tab
+
 ## [1.1.0] - 2025-07-25
 ### Added
 - Caching mechanism for session data to significantly improve loading times
@@ -9,7 +13,6 @@ All major/notable changes to this project will be documented in this file.
 - New sidebar structure with:
   - Intuitive info messages to guide users
   - Data loading spinner to clearly indicate data loading status
-- Added delta time chart to telemetry tab
 
 ### Changed
 - Major code refactor to improve readability, maintainability and error handling

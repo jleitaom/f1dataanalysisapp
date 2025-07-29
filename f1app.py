@@ -111,7 +111,7 @@ def main():
 
     if session:
 
-        # tabs for visualizations
+        # tabs
         tab1, tab2, tab3, tab4= st.tabs([
                                         "Session Results",
                                         "Fastest Lap Telemetry",
@@ -152,7 +152,7 @@ def main():
                         'Q3': session.results['Q3'].apply(format_time)
                     }
 
-                # add Points column only for Race sessions
+                # add points column only for Race sessions
                 if selected_session in ['R', 'S']:  # Race or Sprint
                     results_data['Points'] = session.results['Points'].fillna(0).astype(int)
                 
@@ -175,7 +175,7 @@ def main():
                 )
 
                 if selected_drivers:
-                    # get driver colors
+                    # get drivers colors
                     driver_styles = {
                         drv: get_driver_style(drv, session=session, style=['color', 'linestyle']) for drv in selected_drivers
                     }
@@ -201,12 +201,12 @@ def main():
                         except AttributeError:
                             return time_obj
 
-                    # Display best lap time for each driver
+                    # display best lap time for each driver
                     st.write("**Best Lap Times**")
                     for driver in selected_drivers:
                         laps = session.laps.pick_drivers(driver).pick_fastest()
-                        best_lap_time = laps['LapTime']  # This is likely a single Timedelta object
-                        formatted_time = format_time(best_lap_time)  # Call format_time directly
+                        best_lap_time = laps['LapTime']
+                        formatted_time = format_time(best_lap_time)
                         st.write(f"**{driver}**: {formatted_time}")
 
 
@@ -227,7 +227,7 @@ def main():
                         tel1 = laps1.get_car_data().add_distance()
                         tel2 = laps2.get_car_data().add_distance()
 
-                        # Interpolate driver2's time to match driver1's distance
+                        # interpolate driver2's time to match driver1's distance
                         tel1_dist = tel1['Distance']
                         tel1_time = tel1['Time'].dt.total_seconds()
                         tel2_time_interp = np.interp(
@@ -236,9 +236,9 @@ def main():
                             fp=tel2['Time'].dt.total_seconds()
                         )
 
-                        delta_time = tel2_time_interp - tel1_time  # Positive: driver2 is behind
+                        delta_time = tel2_time_interp - tel1_time  # POSITIVE: driver2 is behind
 
-                        # Horizontal reference at 0
+                        # horizontal delta reference at 0
                         fig.add_trace(
                             go.Scatter(
                                 x=tel1_dist,
@@ -364,7 +364,7 @@ def main():
 
                     else:
 
-                        # create figure with 4 subplots
+                        # create figure with 3 subplots
                         fig = make_subplots(
                             rows=3, cols=1,
                             shared_xaxes=True,
@@ -485,7 +485,7 @@ def main():
                     # color mapping for tire compounds
                     compound_colors = fastf1.plotting.get_compound_mapping(session=session)
 
-                    # create the scatter plot with lapTime in minutes
+                    # scatter plot
                     fig = px.scatter(
                         driver_laps,
                         x="LapNumber",
