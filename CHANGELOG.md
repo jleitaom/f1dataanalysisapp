@@ -9,6 +9,7 @@ All major/notable changes to this project will be documented in this file.
 - New sidebar structure with:
   - Intuitive info messages to guide users
   - Data loading spinner to clearly indicate data loading status
+- Added delta time chart to telemetry tab
 
 ### Changed
 - Major code refactor to improve readability, maintainability and error handling
@@ -18,6 +19,7 @@ All major/notable changes to this project will be documented in this file.
 ### Fixed
 - Session types now correctly reflect only those available for the selected Grand Prix format
 - Adjusted session results table layout for improved readability
+- Fixed driver colors
 
 ## [1.0.0] - 2025-01-12
 ### Added
