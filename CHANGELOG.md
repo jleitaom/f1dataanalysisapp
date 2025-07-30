@@ -2,9 +2,10 @@
 
 All major/notable changes to this project will be documented in this file.
 
-## [1.2.0] - 2025-07-25
+## [1.2.0] - 2025-07-30
 ### Added
-- Added delta time chart to telemetry tab
+- Delta time chart to telemetry tab
+- Gear chart to telemetry tab
 
 ## [1.1.0] - 2025-07-25
 ### Added

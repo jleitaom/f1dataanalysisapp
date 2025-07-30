@@ -212,9 +212,9 @@ def main():
 
                     if len(selected_drivers) == 2:
 
-                        # create figure with 4 subplots
+                        # create figure with 5 subplots
                         fig = make_subplots(
-                            rows=4, cols=1,
+                            rows=5, cols=1,
                             shared_xaxes=True,
                             vertical_spacing=0.03
                         )
@@ -338,6 +338,26 @@ def main():
                                 ),
                                 row=4, col=1
                             )
+
+                            # gear plot
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=telemetry['Distance'],
+                                    y=telemetry['nGear'],
+                                    name=driver,
+                                    mode='lines',
+                                    line=dict(color=color),
+                                    showlegend=True,
+                                    legendgroup="gear",
+                                    legendgrouptitle_text="Drivers",
+                                    hovertemplate=
+                                    "<b>%{fullData.name}</b><br>" +
+                                    "Distance: %{x:.0f}m<br>" +
+                                    "Gear: %{y:.0f}<br>" +
+                                    "<extra></extra>"
+                                ),
+                                row=5, col=1
+                            )
                         
                         # update layout
                         fig.update_layout(
@@ -358,15 +378,16 @@ def main():
                         fig.update_yaxes(title_text="Delta", row=2, col=1)
                         fig.update_yaxes(title_text="Throttle", row=3, col=1)
                         fig.update_yaxes(title_text="Brake", row=4, col=1)
-                        fig.update_xaxes(title_text="Distance", row=4, col=1)
+                        fig.update_yaxes(title_text="Gear", row=5, col=1)
+                        fig.update_xaxes(title_text="Distance", row=5, col=1)
 
                         st.plotly_chart(fig, use_container_width=True)
 
                     else:
 
-                        # create figure with 3 subplots
+                        # create figure with 4 subplots
                         fig = make_subplots(
-                            rows=3, cols=1,
+                            rows=4, cols=1,
                             shared_xaxes=True,
                             vertical_spacing=0.03
                         )
@@ -438,6 +459,26 @@ def main():
                                 ),
                                 row=3, col=1
                             )
+
+                            # gear plot
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=telemetry['Distance'],
+                                    y=telemetry['nGear'],
+                                    name=driver,
+                                    mode='lines',
+                                    line=dict(color=color),
+                                    showlegend=True,
+                                    legendgroup="gear",
+                                    legendgrouptitle_text="Drivers",
+                                    hovertemplate=
+                                    "<b>%{fullData.name}</b><br>" +
+                                    "Distance: %{x:.0f}m<br>" +
+                                    "Gear: %{y:.0f}<br>" +
+                                    "<extra></extra>"
+                                ),
+                                row=4, col=1
+                            )
                         
                             # update layout
                             fig.update_layout(
@@ -457,7 +498,8 @@ def main():
                         fig.update_yaxes(dtick=50, title_text="Speed", row=1, col=1)
                         fig.update_yaxes(title_text="Throttle", row=2, col=1)
                         fig.update_yaxes(title_text="Brake", row=3, col=1)
-                        fig.update_xaxes(title_text="Distance", row=3, col=1)
+                        fig.update_yaxes(title_text="Gear", row=4, col=1)
+                        fig.update_xaxes(title_text="Distance", row=4, col=1)
 
                         st.plotly_chart(fig, use_container_width=True)
             
