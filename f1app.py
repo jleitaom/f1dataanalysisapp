@@ -58,7 +58,6 @@ def main():
     schedule = schedule.iloc[1:]
     gp_names = schedule['EventName'].tolist()
     official_names = schedule['OfficialEventName'].tolist()
-    official_dates = schedule['EventDate'].dt.date.tolist()
 
     # select gp
     selected_gp = st.sidebar.selectbox(
@@ -112,7 +111,8 @@ def main():
     if session:
 
         # tabs
-        tab1, tab2, tab3, tab4= st.tabs([
+        tab1, tab2, tab3, tab4, tab5= st.tabs([
+                                        "Grand Prix Overview",
                                         "Session Results",
                                         "Fastest Lap Telemetry",
                                         "Tyre & Laptime Performance",
@@ -120,6 +120,120 @@ def main():
                                         ])
 
         with tab1:
+            try:
+                # pre-fetch session/gp information
+                gp_details = schedule.loc[schedule['EventName'] == selected_gp, ['RoundNumber', 'Country', 'Location']]
+                round_number = gp_details.RoundNumber.iloc[0] + 1 # index starts at 0
+                total_rounds = schedule['RoundNumber'].max() + 1 # index starts at 0
+                circuit_country = gp_details.Country.iloc[0]
+                circuit_location = gp_details.Location.iloc[0]
+
+                fastest_lap = session.laps.pick_fastest()
+                pos = fastest_lap.get_pos_data()
+
+                circuit_info = session.get_circuit_info()
+                num_corners = len(circuit_info.corners)
+                
+                telemetry = fastest_lap.get_telemetry()
+                track_distance = telemetry['Distance'].max() / 1000
+                
+
+                # columns
+                col1, col2, col3, col4, col5 = st.columns(5) 
+
+                # round number
+                with col1:
+                    with st.container(border=True):
+                        st.metric(label='Round Number', value=f"Round {round_number:.0f} of {total_rounds:.0f}")
+
+                # country
+                with col2:
+                    with st.container(border=True):
+                        st.metric(label='Country', value=f"{circuit_country}")
+
+                # location
+                with col3:
+                    with st.container(border=True):
+                        st.metric(label='Location', value=f"{circuit_location}")
+
+                # total distance
+                with col4:
+                    with st.container(border=True):
+                        st.metric(label='Total Distance', value=f"≈ {track_distance:.1f} km")
+                
+                # number of corners
+                with col5:
+                    with st.container(border=True):
+                        st.metric(label='Number of Corners', value=f"{num_corners:.0f} corners")
+                
+                # circuit map
+                with st.container(border=True): 
+                    def rotate(xy, *, angle):
+                        rot_mat = np.array([[np.cos(angle), np.sin(angle)],
+                                            [-np.sin(angle), np.cos(angle)]])
+                        return np.matmul(xy, rot_mat)
+
+                    # Prepare and rotate track
+                    track = pos.loc[:, ('X', 'Y')].to_numpy()
+                    track_angle = circuit_info.rotation / 180 * np.pi
+                    rotated_track = rotate(track, angle=track_angle)
+
+                    # Track trace
+                    track_trace = go.Scatter(
+                        x=rotated_track[:, 0],
+                        y=rotated_track[:, 1],
+                        mode='lines',
+                        line=dict(color='white', width=4),
+                        name='Track'
+                    )
+
+                    # Corner markers and labels
+                    offset_vector = [500, 0]
+                    corner_labels = []
+                    corner_lines = []
+
+                    for _, corner in circuit_info.corners.iterrows():
+                        txt = f"{corner['Number']}{corner['Letter']}"
+                        offset_angle = corner['Angle'] / 180 * np.pi
+                        offset_x, offset_y = rotate(offset_vector, angle=offset_angle)
+                        text_x, text_y = rotate([corner['X'] + offset_x, corner['Y'] + offset_y], angle=track_angle)
+                        track_x, track_y = rotate([corner['X'], corner['Y']], angle=track_angle)
+
+                        corner_labels.append(go.Scatter(
+                            x=[text_x], y=[text_y],
+                            mode='markers+text',
+                            marker=dict(size=12, color='yellow'),
+                            text=[txt],
+                            textposition='middle center',
+                            textfont=dict(color='black', size=8),
+                            hoverinfo='skip',
+                            showlegend=False
+                        ))
+
+                        corner_lines.append(go.Scatter(
+                            x=[track_x, text_x],
+                            y=[track_y, text_y],
+                            mode='lines',
+                            line=dict(color='white', width=1),
+                            showlegend=False
+                        ))
+
+                    fig = go.Figure(data=[track_trace] + corner_lines + corner_labels)
+                    fig.update_layout(
+                        height=450,
+                        xaxis=dict(visible=False),
+                        yaxis=dict(visible=False, scaleanchor='x', scaleratio=1),
+                        showlegend=False,
+                        margin=dict(t=80, b=20, l=20, r=20)
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+            
+            except Exception as e:
+                st.error(f'No session data {str(e)}')
+                return None
+
+        with tab2:
             try:
                 if selected_session == 'R' or selected_session == 'S':
                     session.results["WL_positions"] = (session.results["GridPosition"] - session.results["Position"]).fillna(0).astype(int)
@@ -163,7 +277,7 @@ def main():
                 st.error(f'No session data {str(e)}')
                 return None
 
-        with tab2:
+        with tab3:
             try:
                 # driver selection for lap times
                 drivers = session.results['Abbreviation'].tolist()
@@ -507,7 +621,7 @@ def main():
                 st.error(f'No session data {str(e)}')
                 return None
         
-        with tab3:
+        with tab4:
             try: 
                 # driver selection for lap times
                 driver = session.results['Abbreviation'].tolist()
@@ -556,7 +670,7 @@ def main():
                 st.error(f'No session data {str(e)}')
                 return None
         
-        with tab4:
+        with tab5:
 
             st.write("Driver Stints by Compound")
             try:
