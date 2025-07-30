@@ -347,7 +347,7 @@ def main():
                                     name=driver,
                                     mode='lines',
                                     line=dict(color=color),
-                                    showlegend=True,
+                                    showlegend=False,
                                     legendgroup="gear",
                                     legendgrouptitle_text="Drivers",
                                     hovertemplate=
@@ -468,7 +468,7 @@ def main():
                                     name=driver,
                                     mode='lines',
                                     line=dict(color=color),
-                                    showlegend=True,
+                                    showlegend=False,
                                     legendgroup="gear",
                                     legendgrouptitle_text="Drivers",
                                     hovertemplate=
