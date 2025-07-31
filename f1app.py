@@ -56,6 +56,7 @@ def main():
 
     if selected_year is None:
         st.sidebar.warning("Please select a year to continue.")
+        st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
         return
 
     def get_event_first_session_date(event_schedule):
@@ -91,7 +92,6 @@ def main():
     today = datetime.now()
     available_schedule = schedule[schedule['FirstSessionDate'] <= today]
     gp_names = available_schedule['EventName'].tolist()
-    official_names = schedule['OfficialEventName'].tolist()
 
     # select gp
     selected_gp = st.sidebar.selectbox(
@@ -103,9 +103,13 @@ def main():
 
     if selected_gp is None:
         st.sidebar.warning("Please select a Grand Prix to continue.")
+        st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
         return
     
-    st.markdown(f"{official_names[gp_names.index(selected_gp)]}")
+    gp_to_official = dict(zip(available_schedule['EventName'], available_schedule['OfficialEventName']))
+    official_name = gp_to_official.get(selected_gp, "Unknown Event")
+
+    st.markdown(f"{official_name}")
 
     # get available session types for the selected gp
     round_number = schedule[schedule['EventName'] == selected_gp]['RoundNumber'].values[0]
@@ -132,6 +136,7 @@ def main():
     
     if selected_session is None:
         st.sidebar.warning("Please select a session type to continue.")
+        st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
         return
 
     st.sidebar.markdown(" ")
@@ -676,7 +681,7 @@ def main():
 
                 if selected_driver:
                     # retrieve and filter laps for the selected driver
-                    driver_laps = session.laps.pick_drivers(selected_driver).pick_quicklaps().reset_index()
+                    driver_laps = session.laps.pick_drivers(selected_driver).pick_laps().reset_index()
                     
                     # convert LapTime to minutes
                     driver_laps["LapTimeMinutes"] = driver_laps["LapTime"].dt.total_seconds() / 60

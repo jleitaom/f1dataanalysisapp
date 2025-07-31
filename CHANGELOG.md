@@ -17,6 +17,7 @@ All major/notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fixed issue where the last available Grand Prix was not shown in the selection menu
+- Fixed issue with official GP name
 
 ## [1.2.0] - 2025-07-30
 ### Added
