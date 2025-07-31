@@ -681,7 +681,7 @@ def main():
 
                 if selected_driver:
                     # retrieve and filter laps for the selected driver
-                    driver_laps = session.laps.pick_drivers(selected_driver).pick_laps().reset_index()
+                    driver_laps = session.laps.pick_drivers(selected_driver).pick_quicklaps(threshold=1.2).reset_index()
                     
                     # convert LapTime to minutes
                     driver_laps["LapTimeMinutes"] = driver_laps["LapTime"].dt.total_seconds() / 60
@@ -699,28 +699,21 @@ def main():
                         labels={"LapNumber": "Lap Number", "LapTimeMinutes": "Lap Time (minutes)"}
                     )
 
-
                     fig.update_yaxes()
 
                     # add grid lines, set the background color, and adjust the font color
                     fig.update_layout(
-                        plot_bgcolor="rgb(15, 17, 22)",
-                        paper_bgcolor="rgb(15, 17, 22)",
-                        font=dict(color="white"),
-                        xaxis=dict(gridcolor="gray"),
-                        yaxis=dict(gridcolor="gray"),
+                        template="plotly_white",
                         legend=dict(title="Compound", font=dict(color="white"))
                     )
 
-                    st.plotly_chart(fig)\
+                    st.plotly_chart(fig)
             
             except Exception as e:
                 st.error(f'No session data {str(e)}')
                 return None
         
         with tab5: # tyre strategy
-
-            st.write("Driver Stints by Compound")
             try:
 
                 # sort drivers by finishing position
@@ -756,7 +749,8 @@ def main():
                             marker=dict(color=compound_color, line=dict(color="black", width=1)),
                             name=row["Compound"],
                             showlegend=show_legend,
-                            legendgroup=row["Compound"]
+                            legendgroup=row["Compound"],
+                            hoverinfo="skip"
                         ))
                         
                         # update previous stint end position
