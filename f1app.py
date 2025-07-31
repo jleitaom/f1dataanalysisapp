@@ -72,12 +72,12 @@ def main():
             for session_type in session_priority:
                 try:
                     session_info = ff1.get_session(row['EventDate'].year, row['EventName'], session_type)
-                    # Check if the session has a date assigned (in case it's scheduled)
+                    # Check if the session has a date assigned
                     if session_info.date is not None:
                         session_date = session_info.date
                         break  # Found the earliest session
                 except Exception:
-                    continue  # Session might not exist for this event (e.g. no SprintShootout)
+                    continue  # Session might not exist for this event
 
             first_session_dates.append(session_date)
 
