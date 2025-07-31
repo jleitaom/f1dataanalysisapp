@@ -153,7 +153,7 @@ def main():
                                         "Tyre Strategy"
                                         ])
 
-        with tab1:
+        with tab1: # gp overview
             try:
                 # pre-fetch session/gp information
                 gp_details = schedule.loc[schedule['EventName'] == selected_gp, ['RoundNumber', 'Country', 'Location']]
@@ -270,7 +270,7 @@ def main():
                 st.error(f'No session data {str(e)}')
                 return None
 
-        with tab2:
+        with tab2: # session results
             try:
                 if selected_session == 'R' or selected_session == 'S':
                     session.results["WL_positions"] = (session.results["GridPosition"] - session.results["Position"]).fillna(0).astype(int)
@@ -317,7 +317,7 @@ def main():
                 st.error(f'No session data {str(e)}')
                 return None
 
-        with tab3:
+        with tab3: # fastest lap telemetry
             try:
                 # driver selection for lap times
                 drivers = session.results['Abbreviation'].tolist()
@@ -664,7 +664,7 @@ def main():
                 st.error(f'No session data {str(e)}')
                 return None
         
-        with tab4:
+        with tab4: # tyre & laptime performance
             try: 
                 # driver selection for lap times
                 driver = session.results['Abbreviation'].tolist()
@@ -713,7 +713,7 @@ def main():
                 st.error(f'No session data {str(e)}')
                 return None
         
-        with tab5:
+        with tab5: # tyre strategy
 
             st.write("Driver Stints by Compound")
             try:
