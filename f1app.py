@@ -215,12 +215,12 @@ def main():
                                             [-np.sin(angle), np.cos(angle)]])
                         return np.matmul(xy, rot_mat)
 
-                    # Prepare and rotate track
+                    # prepare and rotate track
                     track = pos.loc[:, ('X', 'Y')].to_numpy()
                     track_angle = circuit_info.rotation / 180 * np.pi
                     rotated_track = rotate(track, angle=track_angle)
 
-                    # Track trace
+                    # track trace
                     track_trace = go.Scatter(
                         x=rotated_track[:, 0],
                         y=rotated_track[:, 1],
@@ -229,7 +229,7 @@ def main():
                         name='Track'
                     )
 
-                    # Corner markers and labels
+                    # corner markers and labels
                     offset_vector = [500, 0]
                     corner_labels = []
                     corner_lines = []
@@ -272,7 +272,7 @@ def main():
                     st.plotly_chart(fig, use_container_width=True)
             
             except Exception as e:
-                st.error(f'No session data {str(e)}')
+                st.error(f'No session data: {str(e)}')
                 return None
 
         with tab2: # session results
@@ -319,7 +319,7 @@ def main():
                 st.table(results_df)
 
             except Exception as e:
-                st.error(f'No session data {str(e)}')
+                st.error(f'No session data: {str(e)}')
                 return None
 
         with tab3: # fastest lap telemetry
@@ -666,7 +666,7 @@ def main():
                         st.plotly_chart(fig, use_container_width=True)
             
             except Exception as e:
-                st.error(f'No session data {str(e)}')
+                st.error(f'No session data: {str(e)}')
                 return None
         
         with tab4: # tyre & laptime performance
@@ -680,37 +680,74 @@ def main():
                 )
 
                 if selected_driver:
-                    # retrieve and filter laps for the selected driver
+                    # retrieve and filter laps for a threshold of 120% of the fastest lap
                     driver_laps = session.laps.pick_drivers(selected_driver).pick_quicklaps(threshold=1.2).reset_index()
-                    
-                    # convert LapTime to minutes
-                    driver_laps["LapTimeMinutes"] = driver_laps["LapTime"].dt.total_seconds() / 60
 
-                    # color mapping for tire compounds
+                    # convert LapTime to float seconds for y-axis
+                    driver_laps["LapTimeSeconds"] = driver_laps["LapTime"].dt.total_seconds()
+
+                    # format LapTime into min:sec for hover display
+                    def format_laptime(td):
+                        total_seconds = int(td.total_seconds())
+                        minutes = total_seconds // 60
+                        seconds = total_seconds % 60
+                        return f"{minutes}:{seconds:02}"
+
+                    driver_laps["LapTimeStr"] = driver_laps["LapTime"].apply(format_laptime)
+
+                    # compound mapping
                     compound_colors = fastf1.plotting.get_compound_mapping(session=session)
 
-                    # scatter plot
+                    # scatter
                     fig = px.scatter(
                         driver_laps,
                         x="LapNumber",
-                        y="LapTimeMinutes",
+                        y="LapTimeSeconds",
                         color="Compound",
                         color_discrete_map=compound_colors,
-                        labels={"LapNumber": "Lap Number", "LapTimeMinutes": "Lap Time (minutes)"}
+                        labels={"LapNumber": "Lap Number", "LapTimeSeconds": "Lap Time"}
                     )
 
-                    fig.update_yaxes()
+                    # format hovering tool
+                    fig.update_traces(
+                        customdata=driver_laps[["LapTimeStr"]],
+                        hovertemplate="Lap %{x}<br>Lap Time: %{customdata[0]}<br>Compound: %{marker.color}<extra></extra>"
+                    )
 
-                    # add grid lines, set the background color, and adjust the font color
+                    # format y-axis ticks to min:sec (no milliseconds)
+                    min_time = driver_laps["LapTimeSeconds"].min()
+                    max_time = driver_laps["LapTimeSeconds"].max()
+                    tick_vals = np.linspace(min_time, max_time, num=8)
+
+                    def format_tick(v):
+                        total_seconds = int(v)
+                        minutes = total_seconds // 60
+                        seconds = total_seconds % 60
+                        return f"{minutes}:{seconds:02}"
+
+                    tick_texts = [format_tick(v) for v in tick_vals]
+
+                    fig.update_yaxes(
+                        tickmode='array',
+                        tickvals=tick_vals,
+                        ticktext=tick_texts
+                    )
+
+                    # layout adjustments
                     fig.update_layout(
                         template="plotly_white",
+                        plot_bgcolor="rgb(15,17,22)",
+                        paper_bgcolor="rgb(15,17,22)",
+                        font=dict(color="white"),
+                        xaxis=dict(title="Lap Number", gridcolor="gray"),
+                        yaxis=dict(title="Lap Time", gridcolor="gray"),
                         legend=dict(title="Compound", font=dict(color="white"))
                     )
 
                     st.plotly_chart(fig)
-            
+
             except Exception as e:
-                st.error(f'No session data {str(e)}')
+                st.error(f'No session data: {str(e)}')
                 return None
         
         with tab5: # tyre strategy
@@ -779,7 +816,7 @@ def main():
                 st.plotly_chart(fig)
 
             except Exception as e:
-                st.error(f'No session data {str(e)}')
+                st.error(f'No session data: {str(e)}')
                 return None
 
     else:
