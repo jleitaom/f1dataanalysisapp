@@ -772,7 +772,7 @@ def main():
                     barmode='stack',
                     font=dict(color="white"),
                     legend_traceorder="normal",
-                    height=800,
+                    height=600,
                     xaxis=dict(tickvals=list(range(0, int(max(session.laps["LapNumber"])) + 1, 5)))
                 )
 
