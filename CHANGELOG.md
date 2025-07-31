@@ -11,6 +11,13 @@ All major/notable changes to this project will be documented in this file.
   - Number of corners
   - Total track distance
 
+### Changed
+- Major code refactor to improve readability, maintainability and error handling
+- Changed GP selection dropdown to only show Grand Prix events with available session data
+
+### Fixed
+- Fixed issue where the last available Grand Prix was not shown in the selection menu
+
 ## [1.2.0] - 2025-07-30
 ### Added
 - Delta time chart to telemetry tab

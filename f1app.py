@@ -16,6 +16,9 @@ fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme='fastf1')
 # load session data function
 @st.cache_resource(show_spinner="Loading session data...")
 def load_session(year, gp_name, session_type):
+    """
+    Load the session data for the given year, Grand Prix name, and session type.
+    """
     try:
         session = ff1.get_session(year, gp_name, session_type)
         session.load()
@@ -26,6 +29,9 @@ def load_session(year, gp_name, session_type):
 
 # main function to run the app
 def main():
+    """
+    Main function to run the app    
+    """
     st.title("🏎️ F1 Data App")
     st.sidebar.header("🏁 Session")
     st.sidebar.markdown("Use the sidebar to select the season year, Grand Prix, and session type you want to analyze!")
@@ -52,11 +58,39 @@ def main():
         st.sidebar.warning("Please select a year to continue.")
         return
 
+    def get_event_first_session_date(event_schedule):
+        """
+        For each event in the schedule, find the date of the first available session:
+        Sprint Shootout > Sprint > Qualifying > Race
+        """
+        session_priority = ['SprintShootout', 'Sprint', 'Qualifying', 'Race']
+        first_session_dates = []
+
+        for _, row in event_schedule.iterrows():
+            # Default to None, update if session exists
+            session_date = None
+            for session_type in session_priority:
+                try:
+                    session_info = ff1.get_session(row['EventDate'].year, row['EventName'], session_type)
+                    # Check if the session has a date assigned (in case it's scheduled)
+                    if session_info.date is not None:
+                        session_date = session_info.date
+                        break  # Found the earliest session
+                except Exception:
+                    continue  # Session might not exist for this event (e.g. no SprintShootout)
+
+            first_session_dates.append(session_date)
+
+        return first_session_dates
+
     # load schedule for the selected year and get available gp for the selected year
     schedule = ff1.get_event_schedule(selected_year)
-    schedule = schedule.sort_values('RoundNumber', ascending=False)
     schedule = schedule.iloc[1:]
-    gp_names = schedule['EventName'].tolist()
+    schedule = schedule.sort_values('RoundNumber', ascending=False)
+    schedule['FirstSessionDate'] = get_event_first_session_date(schedule)
+    today = datetime.now()
+    available_schedule = schedule[schedule['FirstSessionDate'] <= today]
+    gp_names = available_schedule['EventName'].tolist()
     official_names = schedule['OfficialEventName'].tolist()
 
     # select gp
@@ -169,6 +203,9 @@ def main():
                 # circuit map
                 with st.container(border=True): 
                     def rotate(xy, *, angle):
+                        """ 
+                        Rotate coordinates by a given angle in radians.
+                        """
                         rot_mat = np.array([[np.cos(angle), np.sin(angle)],
                                             [-np.sin(angle), np.cos(angle)]])
                         return np.matmul(xy, rot_mat)
@@ -249,6 +286,9 @@ def main():
 
                 else:
                     def format_time(time_str):
+                        """
+                        Format time string to MM:SS.sss format
+                        """
                         if pd.isna(time_str):
                             return "N/A"
                         try:
@@ -307,6 +347,9 @@ def main():
                     )
 
                     def format_time(time_obj):
+                        """
+                        Format time object to MM:SS.sss format
+                        """
                         if pd.isna(time_obj):
                             return "N/A"
                         try:
