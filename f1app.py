@@ -157,8 +157,8 @@ def main():
             try:
                 # pre-fetch session/gp information
                 gp_details = schedule.loc[schedule['EventName'] == selected_gp, ['RoundNumber', 'Country', 'Location']]
-                round_number = gp_details.RoundNumber.iloc[0] + 1 # index starts at 0
-                total_rounds = schedule['RoundNumber'].max() + 1 # index starts at 0
+                round_number = gp_details.RoundNumber.iloc[0]
+                total_rounds = schedule['RoundNumber'].max()
                 circuit_country = gp_details.Country.iloc[0]
                 circuit_location = gp_details.Location.iloc[0]
 
