@@ -532,7 +532,8 @@ def main():
                                 xanchor="left",
                                 x=1.0
                             ),
-                            hovermode='x unified'
+                            hovermode='x unified',
+                            margin=dict(t=60)
                         )
 
                         # update axes labels
@@ -653,7 +654,8 @@ def main():
                                     xanchor="left",
                                     x=1.0
                                 ),
-                                hovermode='x unified'
+                                hovermode='x unified',
+                                margin=dict(t=60)
                             )
 
                         # update axes labels
@@ -735,6 +737,7 @@ def main():
 
                     # layout adjustments
                     fig.update_layout(
+                        title="Tyre and Lap Time Performance",
                         template="plotly_white",
                         plot_bgcolor="rgb(15,17,22)",
                         paper_bgcolor="rgb(15,17,22)",
@@ -804,13 +807,15 @@ def main():
 
                 # update layout for improved readability and appearance
                 fig.update_layout(
+                    title="Tyre Strategy by Driver",
                     xaxis_title="Lap Number",
                     yaxis_title="Driver",
                     barmode='stack',
                     font=dict(color="white"),
                     legend_traceorder="normal",
                     height=600,
-                    xaxis=dict(tickvals=list(range(0, int(max(session.laps["LapNumber"])) + 1, 5)))
+                    xaxis=dict(tickvals=list(range(0, int(max(session.laps["LapNumber"])) + 1, 5))),
+                    margin=dict(t=40)
                 )
 
                 st.plotly_chart(fig)
