@@ -11,6 +11,7 @@ All major/notable changes to this project will be documented in this file.
   - Number of corners
   - Total track distance
 - New chart in tyre performance tab with Weather conditions
+- New tab with race and sprint position changes
 
 ### Changed
 - Major code refactor to improve readability, maintainability and error handling

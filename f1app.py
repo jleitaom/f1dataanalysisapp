@@ -147,17 +147,40 @@ def main():
         session = load_session(selected_year, selected_gp, selected_session)
 
 
+        DASH_MAP = {
+        'solid': 'solid',
+        'dashed': 'dash',
+        'dotted': 'dot',
+        'dashdot': 'dashdot',
+        'longdash': 'longdash',
+        'longdashdot': 'longdashdot'
+    }
+
     if session:
+        
+        if selected_session == 'R' or selected_session == 'S':
+            
+            # tabs for Race and Sprint sessions
+            tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+                                            "Grand Prix Overview",
+                                            "Session Results",
+                                            "Position Changes",
+                                            "Fastest Lap Telemetry",
+                                            "Tyre Performance & Weather",
+                                            "Tyre Strategy"
+                                            ])
+        else:
 
-        # tabs
-        tab1, tab2, tab3, tab4, tab5= st.tabs([
-                                        "Grand Prix Overview",
-                                        "Session Results",
-                                        "Fastest Lap Telemetry",
-                                        "Tyre Performance & Weather",
-                                        "Tyre Strategy"
-                                        ])
-
+            # tabs for Qualifying and Sprint Qualifying sessions
+            tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+                                            "Grand Prix Overview",
+                                            "Session Results",
+                                            "Qualifying Results",
+                                            "Fastest Lap Telemetry",
+                                            "Tyre Performance & Weather",
+                                            "Tyre Strategy"
+                                            ])
+        
         with tab1: # gp overview
             try:
                 # pre-fetch session/gp information
@@ -322,7 +345,80 @@ def main():
                 st.error(f'No session data: {str(e)}')
                 return None
 
-        with tab3: # fastest lap telemetry
+        # tab3:
+        if selected_session == 'R' or selected_session == 'S':
+            with tab3:
+                try:
+                    laps = session.laps
+                    driver_styles = {
+                        drv: get_driver_style(drv, session=session, style=['color', 'linestyle'])
+                        for drv in laps['Driver'].unique()
+                    }
+
+                    # sort drivers by finishing position
+                    finish_order = (
+                        session.results[["Abbreviation", "Position"]]
+                        .sort_values("Position")
+                        .dropna()
+                    )
+                    sorted_drivers = finish_order["Abbreviation"].tolist()
+
+                    # include any drivers missing from results (e.g., DNF)
+                    all_drivers = sorted(laps['Driver'].unique())
+                    sorted_drivers += [drv for drv in all_drivers if drv not in sorted_drivers]
+
+                    fig = go.Figure()
+
+                    for drv in sorted_drivers:
+                        drv_laps = laps.pick_driver(drv).sort_values(by="LapNumber")
+                        dash_style = DASH_MAP.get(driver_styles[drv].get('linestyle', 'solid'), 'solid')
+
+                        fig.add_trace(go.Scatter(
+                            x=drv_laps["LapNumber"],
+                            y=drv_laps["Position"],
+                            mode='lines',
+                            name=drv,
+                            line=dict(
+                                color=driver_styles[drv]['color'],
+                                dash=dash_style,
+                                width=1.2
+                            ),
+                            hovertemplate="Pos %{y}<extra>%{fullData.name}</extra>"
+                        ))
+
+                    fig.update_yaxes(
+                        autorange="reversed",
+                        title="Race Position",
+                        tickmode='array',
+                        tickvals=[1, 5, 10, 15, 20],
+                        ticktext=['P1', 'P5', 'P10', 'P15', 'P20']
+                    )
+                    
+                    fig.update_xaxes(title="Lap Number")
+                    
+                    fig.update_layout(
+                        title="Position Changes During Session",
+                        template="plotly_white",
+                        height=600,
+                        legend_title="Driver",
+                        hovermode="x unified"
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                except Exception as e:
+                    st.error(f'No session data: {str(e)}')
+        
+        else: # qualifying and sprint qualifying sessions
+            with tab3:
+                try:
+                    st.write("**Qualifying Results Overview**")
+                except Exception as e:
+                    st.error(f'No session data: {str(e)}')
+                    return None
+
+
+        with tab4: # fastest lap telemetry
             try:
                 # driver selection for lap times
                 drivers = session.results['Abbreviation'].tolist()
@@ -671,7 +767,7 @@ def main():
                 st.error(f'No session data: {str(e)}')
                 return None
         
-        with tab4: # tyre performance & weather
+        with tab5: # tyre performance & weather
             try: 
                 # driver selection for lap times
                 driver = session.results['Abbreviation'].tolist()
@@ -832,7 +928,7 @@ def main():
                 st.error(f'No session data: {str(e)}')
                 return None
         
-        with tab5: # tyre strategy
+        with tab6: # tyre strategy
             try:
 
                 # sort drivers by finishing position
