@@ -292,7 +292,14 @@ def main():
                         margin=dict(t=80, b=20, l=20, r=20)
                     )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(
+                        fig, 
+                        use_container_width=True,
+                        config={
+                        "modeBarButtonsToRemove": ["toImage"],
+                        "displaylogo": False
+                        }
+                    )
             
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
@@ -404,7 +411,14 @@ def main():
                         hovermode="x unified"
                     )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(
+                        fig, 
+                        use_container_width=True,
+                        config={
+                        "modeBarButtonsToRemove": ["toImage"],
+                        "displaylogo": False
+                        }
+                    )
 
                 except Exception as e:
                     st.error(f'No session data: {str(e)}')
@@ -494,7 +508,14 @@ def main():
                         margin=dict(t=80, r=80),  # Add right margin so labels fit
                     )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(
+                        fig, 
+                        use_container_width=True,
+                        config={
+                        "modeBarButtonsToRemove": ["toImage"],
+                        "displaylogo": False
+                        }
+                    )
                 
                 except Exception as e:
                     st.error(f'No session data: {str(e)}')
@@ -723,7 +744,14 @@ def main():
                         fig.update_yaxes(title_text="Gear", row=5, col=1)
                         fig.update_xaxes(title_text="Distance", row=5, col=1)
 
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(
+                            fig, 
+                            use_container_width=True,
+                            config={
+                            "modeBarButtonsToRemove": ["toImage"],
+                            "displaylogo": False
+                            }
+                        )
 
                     else:
 
@@ -844,7 +872,14 @@ def main():
                         fig.update_yaxes(title_text="Gear", row=4, col=1)
                         fig.update_xaxes(title_text="Distance", row=4, col=1)
 
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(
+                            fig, 
+                            use_container_width=True,
+                            config={
+                            "modeBarButtonsToRemove": ["toImage"],
+                            "displaylogo": False
+                            }
+                        )
             
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
@@ -921,11 +956,25 @@ def main():
                         font=dict(color="white"),
                         xaxis=dict(title="Lap Number"),
                         yaxis=dict(title="Lap Time"),
-                        legend=dict(title="Compound", font=dict(color="white")),
-                        height=400
+                        legend=dict(
+                            orientation="h",
+                            x=1.0,
+                            xanchor='right',
+                            y=1.1,
+                            yanchor='bottom',
+                        ),
+                        height=400,
+                        margin=dict(t=110),
                     )
 
-                    st.plotly_chart(fig)
+                    st.plotly_chart(
+                        fig, 
+                        use_container_width=True,
+                        config={
+                        "modeBarButtonsToRemove": ["toImage"],
+                        "displaylogo": False
+                        }
+                    )
 
                     # extract weather data
                     weather_data = session.weather_data
@@ -1002,10 +1051,16 @@ def main():
                         template='plotly_white',
                         height=400,
                         hovermode="x unified"
-
                     )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(
+                        fig, 
+                        use_container_width=True,
+                        config={
+                        "modeBarButtonsToRemove": ["toImage"],
+                        "displaylogo": False
+                        }
+                    )
 
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
@@ -1076,7 +1131,14 @@ def main():
                     margin=dict(t=40)
                 )
 
-                st.plotly_chart(fig)
+                st.plotly_chart(
+                    fig, 
+                    use_container_width=True,
+                    config={
+                    "modeBarButtonsToRemove": ["toImage"],
+                    "displaylogo": False
+                    }
+                )
 
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
