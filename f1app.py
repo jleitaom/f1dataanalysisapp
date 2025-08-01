@@ -154,7 +154,7 @@ def main():
                                         "Grand Prix Overview",
                                         "Session Results",
                                         "Fastest Lap Telemetry",
-                                        "Tyre & Laptime Performance",
+                                        "Tyre Performance & Weather",
                                         "Tyre Strategy"
                                         ])
 
@@ -671,7 +671,7 @@ def main():
                 st.error(f'No session data: {str(e)}')
                 return None
         
-        with tab4: # tyre & laptime performance
+        with tab4: # tyre performance & weather
             try: 
                 # driver selection for lap times
                 driver = session.results['Abbreviation'].tolist()
@@ -739,15 +739,89 @@ def main():
                     fig.update_layout(
                         title="Tyre and Lap Time Performance",
                         template="plotly_white",
-                        plot_bgcolor="rgb(15,17,22)",
-                        paper_bgcolor="rgb(15,17,22)",
                         font=dict(color="white"),
-                        xaxis=dict(title="Lap Number", gridcolor="gray"),
-                        yaxis=dict(title="Lap Time", gridcolor="gray"),
-                        legend=dict(title="Compound", font=dict(color="white"))
+                        xaxis=dict(title="Lap Number"),
+                        yaxis=dict(title="Lap Time"),
+                        legend=dict(title="Compound", font=dict(color="white")),
+                        height=400
                     )
 
                     st.plotly_chart(fig)
+
+                    # extract weather data
+                    weather_data = session.weather_data
+                    weather_data['TimeHours'] = weather_data['Time'].dt.total_seconds() / 3600
+                    air_temp = weather_data['AirTemp']
+                    track_temp = weather_data['TrackTemp']
+                    rainfall = weather_data['Rainfall'].astype(int)
+
+
+                    fig = go.Figure()
+
+                    # track temperature
+                    fig.add_trace(go.Scatter(
+                        x=weather_data['TimeHours'],
+                        y=track_temp,
+                        name='Track Temp [°C]',
+                        mode='lines',
+                        line=dict(width=2, color='crimson')
+                    ))
+
+                    # air temperature
+                    fig.add_trace(go.Scatter(
+                        x=weather_data['TimeHours'],
+                        y=air_temp,
+                        name='Air Temp [°C]',
+                        mode='lines',
+                        line=dict(width=2, dash='dash', color='yellow')
+                    ))
+
+                    # humidity
+                    fig.add_trace(go.Scatter(
+                        x=weather_data['TimeHours'],
+                        y=weather_data['Humidity'],
+                        name='Humidity [%]',
+                        mode='lines',
+                        line=dict(width=1, color='deepskyblue', dash='dot'),
+                        yaxis='y2'
+                    ))
+
+                    # rainfall
+                    fig.add_trace(go.Scatter(
+                        x=weather_data['TimeHours'],
+                        y=rainfall * track_temp.max(),
+                        fill='tozeroy',
+                        name='Rainfall',
+                        mode='none',
+                        fillcolor='rgba(0, 100, 255, 0.3)'
+                    ))
+
+
+                    fig.update_layout(
+                        title="Weather Conditions",
+                        xaxis_title='Session Time (Hours)',
+                        yaxis=dict(
+                            title='Temperature [°C]'
+                        ),
+                        yaxis2=dict(
+                            title='Humidity [%]',
+                            overlaying='y',
+                            side='right',
+                            showgrid=False
+                        ),
+                        legend=dict(
+                            orientation="h",           # horizontal layout
+                            x=1.0,                     # fully right-aligned
+                            xanchor='right',
+                            y=1.1,                     # place above the plot area
+                            yanchor='bottom',
+                        ),
+                        template='plotly_white',
+                        height=400,
+                        hovermode=False
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
 
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
