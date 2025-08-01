@@ -413,6 +413,8 @@ def main():
             with tab3:
                 try:
                     st.write("**Qualifying Results Overview**")
+                    st.warning("**Tab in development**")
+                
                 except Exception as e:
                     st.error(f'No session data: {str(e)}')
                     return None
