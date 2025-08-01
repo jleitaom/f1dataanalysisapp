@@ -2,7 +2,7 @@
 
 All major/notable changes to this project will be documented in this file.
 
-## [1.3.0] - 2025-07-31
+## [2.0.0] - 2025-08-01
 ### Added
 - New tab with Grand Prix overview
   - Round Number

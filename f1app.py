@@ -412,8 +412,89 @@ def main():
         else: # qualifying and sprint qualifying sessions
             with tab3:
                 try:
-                    st.write("**Qualifying Results Overview**")
-                    st.warning("**Tab in development**")
+                    # convert to seconds
+                    def to_seconds(t):
+                        if pd.isnull(t):
+                            return None
+                        return t.total_seconds()
+
+                    # define quali parts
+                    quali_parts = ['Q1', 'Q2', 'Q3']
+                    fig = make_subplots(
+                        rows=1, cols=3,
+                        shared_xaxes=False,
+                        subplot_titles=[f"{q}" for q in quali_parts]
+                    )
+
+                    for i, quali in enumerate(quali_parts, start=1):
+                        # extract lap times
+                        lap_times = session.results[['Abbreviation', 'TeamName', quali]].dropna(subset=[quali]).copy()
+                        lap_times['LapTimeSec'] = lap_times[quali].apply(to_seconds)
+
+                        if lap_times.empty:
+                            continue
+
+                        # fastest lap time in seconds
+                        best_time = lap_times['LapTimeSec'].min()
+
+                        # compute gap % relative to best
+                        lap_times['Delta'] = lap_times['LapTimeSec'] - best_time
+                        lap_times['DeltaPct'] = 100 * lap_times['Delta'] / best_time
+
+                        # sort fastest first
+                        lap_times = lap_times.sort_values(by='DeltaPct').reset_index(drop=True)
+
+                        # get driver-specific styles (color, linestyle, etc.)
+                        driver_styles = {
+                            drv: fastf1.plotting.get_driver_style(drv, session=session, style=['color'])
+                            for drv in lap_times['Abbreviation']
+                        }
+                        driver_colors = [driver_styles[drv]['color'] for drv in lap_times['Abbreviation']]
+
+                        # bar
+                        fig.add_trace(go.Bar(
+                            y=lap_times['Abbreviation'],
+                            x=lap_times['DeltaPct'],
+                            orientation='h',
+                            marker=dict(
+                                color=driver_colors,
+                                line=dict(color='gray', width=0.5)
+                            ),
+                            text=[
+                                f"{int(lap // 60)}:{lap % 60:06.3f}" if delta == 0 else f"+{delta:.3f}s"
+                                for lap, delta in zip(lap_times['LapTimeSec'], lap_times['Delta'])
+                            ],
+                            textposition='outside',
+                            insidetextanchor='start',
+                            cliponaxis=False,  # Ensures text isn't cut off when it's outside the chart
+                            hovertemplate="Driver: %{y}<br>Gap: %{x:.3f}%<extra></extra>"
+                        ), row=1, col=i)
+
+                        fig.update_yaxes(autorange="reversed", 
+                            row=1, 
+                            col=i
+                        )
+
+                        fig.update_xaxes(
+                            title_text="Gap to Fastest (%)",
+                            showgrid=True,
+                            dtick=0.1,
+                            row=1,
+                            col=i
+                        )
+
+                    # Final layout
+                    fig.update_layout(
+                        height=650,
+                        title="Qualifying Gap to Fastest",
+                        showlegend=False,
+                        template="plotly_white",
+                        uniformtext_minsize=8,
+                        uniformtext_mode='show',
+                        margin=dict(t=80, r=80),  # Add right margin so labels fit
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
                 
                 except Exception as e:
                     st.error(f'No session data: {str(e)}')
