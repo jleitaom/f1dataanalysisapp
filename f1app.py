@@ -377,7 +377,7 @@ def main():
                     fig = go.Figure()
 
                     for drv in sorted_drivers:
-                        drv_laps = laps.pick_driver(drv).sort_values(by="LapNumber")
+                        drv_laps = laps.pick_drivers(drv).sort_values(by="LapNumber")
                         dash_style = DASH_MAP.get(driver_styles[drv].get('linestyle', 'solid'), 'solid')
 
                         fig.add_trace(go.Scatter(
