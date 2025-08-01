@@ -10,7 +10,7 @@ All major/notable changes to this project will be documented in this file.
   - Location
   - Number of corners
   - Total track distance
-- New tab with Weather conditions
+- New chart in tyre performance tab with Weather conditions
 
 ### Changed
 - Major code refactor to improve readability, maintainability and error handling
