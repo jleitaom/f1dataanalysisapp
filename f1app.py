@@ -764,7 +764,8 @@ def main():
                         y=track_temp,
                         name='Track Temp [°C]',
                         mode='lines',
-                        line=dict(width=2, color='crimson')
+                        line=dict(width=2, color='crimson'),
+                        hovertemplate='Track Temp: %{y:.1f}°C<extra></extra>'
                     ))
 
                     # air temperature
@@ -773,7 +774,8 @@ def main():
                         y=air_temp,
                         name='Air Temp [°C]',
                         mode='lines',
-                        line=dict(width=2, dash='dash', color='yellow')
+                        line=dict(width=2, dash='dash', color='yellow'),
+                        hovertemplate='Air Temp: %{y:.1f}°C<extra></extra>'
                     ))
 
                     # humidity
@@ -783,7 +785,8 @@ def main():
                         name='Humidity [%]',
                         mode='lines',
                         line=dict(width=1, color='deepskyblue', dash='dot'),
-                        yaxis='y2'
+                        yaxis='y2',
+                        hovertemplate='Humidity: %{y:.0f}%<extra></extra>'
                     ))
 
                     # rainfall
@@ -793,7 +796,8 @@ def main():
                         fill='tozeroy',
                         name='Rainfall',
                         mode='none',
-                        fillcolor='rgba(0, 100, 255, 0.3)'
+                        fillcolor='rgba(0, 100, 255, 0.3)',
+                        hoverinfo='skip'
                     ))
 
 
@@ -810,15 +814,16 @@ def main():
                             showgrid=False
                         ),
                         legend=dict(
-                            orientation="h",           # horizontal layout
-                            x=1.0,                     # fully right-aligned
+                            orientation="h",
+                            x=1.0,
                             xanchor='right',
-                            y=1.1,                     # place above the plot area
+                            y=1.1,
                             yanchor='bottom',
                         ),
                         template='plotly_white',
                         height=400,
-                        hovermode=False
+                        hovermode="x unified"
+
                     )
 
                     st.plotly_chart(fig, use_container_width=True)
