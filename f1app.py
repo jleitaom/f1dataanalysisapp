@@ -713,7 +713,7 @@ def main():
                     # format hovering tool
                     fig.update_traces(
                         customdata=driver_laps[["LapTimeStr"]],
-                        hovertemplate="Lap %{x}<br>Lap Time: %{customdata[0]}<br>Compound: %{marker.color}<extra></extra>"
+                        hovertemplate="Lap %{x}<br>Lap Time: %{customdata[0]}<br><extra></extra>"
                     )
 
                     # format y-axis ticks to min:sec (no milliseconds)
