@@ -62,7 +62,7 @@ def main():
     def get_event_first_session_date(event_schedule):
         """
         For each event in the schedule, find the date of the first available session:
-        Sprint Shootout > Sprint > Qualifying > Race
+        Sprint Qualifying > Sprint > Qualifying > Race
         """
         session_priority = ['SprintShootout', 'Sprint', 'Qualifying', 'Race']
         first_session_dates = []
