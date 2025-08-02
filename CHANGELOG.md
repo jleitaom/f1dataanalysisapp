@@ -12,6 +12,7 @@ All major/notable changes to this project will be documented in this file.
   - Total track distance
 - New chart in tyre performance tab with Weather conditions
 - New tab with race and sprint position changes
+- Ability to change quicklaps threshold from 101% to 300%
 
 ### Changed
 - Major code refactor to improve readability, maintainability and error handling
