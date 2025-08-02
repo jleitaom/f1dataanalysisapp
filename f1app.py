@@ -68,17 +68,17 @@ def main():
         first_session_dates = []
 
         for _, row in event_schedule.iterrows():
-            # Default to None, update if session exists
+            # default to None, update if session exists
             session_date = None
             for session_type in session_priority:
                 try:
                     session_info = ff1.get_session(row['EventDate'].year, row['EventName'], session_type)
-                    # Check if the session has a date assigned
+                    # check if the session has a date assigned
                     if session_info.date is not None:
                         session_date = session_info.date
-                        break  # Found the earliest session
+                        break
                 except Exception:
-                    continue  # Session might not exist for this event
+                    continue
 
             first_session_dates.append(session_date)
 
