@@ -22,18 +22,12 @@ def load_session(year, gp_name, session_type):
     try:
         session = ff1.get_session(year, gp_name, session_type)
         session.load()
-
-        st.write("Session loaded:", session.event['EventName'], session.name)
-
-        # Debug: check laps and results
-        st.write("Number of laps:", len(session.laps))
-        st.write("Results available:", not session.results.empty)
         
         if session.laps.empty:
-            st.warning("Session has no laps — telemetry may not be available yet.")
+            st.warning("Session loaded, but telemetry is not yet available. Try again in a few minutes.")
         return session
     except Exception as e:
-        st.error(f'Error loading session: {str(e)}')
+        st.error(f'Failed to load session: {e}')
         return None
 
 # main function to run the app
