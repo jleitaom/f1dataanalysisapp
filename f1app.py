@@ -4,7 +4,7 @@ import fastf1.plotting
 from fastf1.plotting import get_driver_style
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -44,7 +44,7 @@ def main():
     session = None
 
     # get current year
-    current_year = datetime.now().year
+    current_year = datetime.now(timezone.utc).year
 
     # select session
     selected_year = st.sidebar.selectbox(
@@ -89,7 +89,7 @@ def main():
     schedule = schedule.iloc[1:]
     schedule = schedule.sort_values('RoundNumber', ascending=False)
     schedule['FirstSessionDate'] = get_event_first_session_date(schedule)
-    today = datetime.now()
+    today = datetime.now(timezone.utc)
     available_schedule = schedule[schedule['FirstSessionDate'] <= today]
     gp_names = available_schedule['EventName'].tolist()
 
