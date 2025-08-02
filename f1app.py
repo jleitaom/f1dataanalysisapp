@@ -44,7 +44,7 @@ def main():
     session = None
 
     # get current year
-    current_year = datetime.now(timezone.utc).year
+    current_year = datetime.now().year
 
     # select session
     selected_year = st.sidebar.selectbox(
@@ -89,7 +89,7 @@ def main():
     schedule = schedule.iloc[1:]
     schedule = schedule.sort_values('RoundNumber', ascending=False)
     schedule['FirstSessionDate'] = get_event_first_session_date(schedule)
-    today = datetime.now(timezone.utc)
+    today = datetime.now()
     available_schedule = schedule[schedule['FirstSessionDate'] <= today]
     gp_names = available_schedule['EventName'].tolist()
 
