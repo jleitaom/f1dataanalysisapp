@@ -524,14 +524,15 @@ def main():
 
         with tab4: # fastest lap telemetry
             try:
-                # driver selection for lap times
-                drivers = session.results['Abbreviation'].tolist()
-                selected_drivers = st.multiselect(
-                    "Select Drivers to Compare",
-                    drivers,
-                    key="tab2_multiselect",
-                    max_selections=2
-                )
+                with st.container(border=True):
+                    # driver selection for lap times
+                    drivers = session.results['Abbreviation'].tolist()
+                    selected_drivers = st.multiselect(
+                        "Select Drivers to Compare",
+                        drivers,
+                        key="tab2_multiselect",
+                        max_selections=2
+                    )
 
                 if selected_drivers:
                     # get drivers colors
@@ -885,33 +886,59 @@ def main():
                 st.error(f'No session data: {str(e)}')
                 return None
         
-        with tab5: # tyre performance & weather
+        with tab5:
             try: 
-                # driver selection for lap times
-                driver = session.results['Abbreviation'].tolist()
-                selected_driver = st.selectbox(
-                    "Select Driver",
-                    driver,
-                    key="tab5_selectbox"
-                )
+
+                with st.container(border=True):
+                    col1, col2 = st.columns(2)
+                    
+                    # driver selection for lap times
+                    with col1:
+                        driver = session.results['Abbreviation'].tolist()
+                        selected_driver = st.selectbox(
+                            "Select Driver",
+                            driver,
+                            key="tab5_selectbox"
+                        )
+
+                    # threshold slider (100% to 300%)
+                    with col2:
+                        threshold_percent = st.slider(
+                            "Lap Time Threshold (% of fastest lap)",
+                            min_value=101,
+                            max_value=300,
+                            value=120,
+                            step=1,
+                            key="tab5_threshold_slider"
+                        )
+                    
+                    st.info("""
+                    **Note:**  
+                    Not all laps are equal — some are significantly slower due to traffic, pit stops, or changing conditions. To maintain clarity, a threshold is applied to exclude these laps.  
+                    FastF1 API defaults to **107%**, but this app uses a more inclusive **120%** by default to retain potentially useful data.  
+                    Try adjusting the slider to see how the data changes! 😄
+                    """)
+
+                # convert to 1.0–2.0
+                threshold_factor = threshold_percent / 100
 
                 if selected_driver:
-                    # Get driver laps
+                    # get driver laps
                     driver_laps = (
                         session.laps
                         .pick_drivers(selected_driver)
-                        .pick_quicklaps(threshold=1.2)
+                        .pick_quicklaps(threshold=threshold_factor)
                         .reset_index()
                     )
                     driver_laps = driver_laps[driver_laps["LapTime"].notna()]
 
-                    # Use raw float seconds
+                    # raw seconds
                     driver_laps["LapTimeSeconds"] = driver_laps["LapTime"].dt.total_seconds()
 
-                    # Compound colors
+                    # compound colors
                     compound_colors = fastf1.plotting.get_compound_mapping(session=session)
 
-                    # Build figure
+                    # scatter
                     fig = px.scatter(
                         driver_laps,
                         x="LapNumber",
@@ -925,12 +952,11 @@ def main():
                         title=f"{selected_driver} - Lap Time vs Tyre Compound"
                     )
 
-                    # Optional: simple hover in seconds (no formatting function)
                     fig.update_traces(
-                        hovertemplate="Lap %{x}s<extra></extra>"
+                        hovertemplate="Lap %{x}<extra></extra>"
                     )
 
-                    # Manually format Y-axis ticks as min:sec.millis
+                    # format y-axis as min:sec.millis
                     min_time = driver_laps["LapTimeSeconds"].min()
                     max_time = driver_laps["LapTimeSeconds"].max()
                     tick_vals = np.linspace(min_time, max_time, 8)
@@ -949,7 +975,6 @@ def main():
                         title="Lap Time (min:sec.sss)"
                     )
 
-                    # Final layout
                     fig.update_layout(
                         template="plotly_white",
                         height=450,
@@ -964,7 +989,6 @@ def main():
                         )
                     )
 
-                    # Display in Streamlit
                     st.plotly_chart(
                         fig,
                         use_container_width=True,
