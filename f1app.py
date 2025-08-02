@@ -896,83 +896,81 @@ def main():
                 )
 
                 if selected_driver:
-                    # retrieve and filter laps for a threshold of 120% of the fastest lap
-                    driver_laps = session.laps.pick_drivers(selected_driver).pick_quicklaps(threshold=1.2).reset_index()
+                    # Get driver laps
+                    driver_laps = (
+                        session.laps
+                        .pick_drivers(selected_driver)
+                        .pick_quicklaps(threshold=1.2)
+                        .reset_index()
+                    )
+                    driver_laps = driver_laps[driver_laps["LapTime"].notna()]
 
-                    # convert LapTime to float seconds for y-axis
+                    # Use raw float seconds
                     driver_laps["LapTimeSeconds"] = driver_laps["LapTime"].dt.total_seconds()
 
-                    # format LapTime into min:sec for hover display
-                    def format_laptime(td):
-                        total_seconds = int(td.total_seconds())
-                        minutes = total_seconds // 60
-                        seconds = total_seconds % 60
-                        return f"{minutes}:{seconds:02}"
-
-                    driver_laps["LapTimeStr"] = driver_laps["LapTime"].apply(format_laptime)
-
-                    # compound mapping
+                    # Compound colors
                     compound_colors = fastf1.plotting.get_compound_mapping(session=session)
 
-                    # scatter
+                    # Build figure
                     fig = px.scatter(
                         driver_laps,
                         x="LapNumber",
                         y="LapTimeSeconds",
                         color="Compound",
                         color_discrete_map=compound_colors,
-                        labels={"LapNumber": "Lap Number", "LapTimeSeconds": "Lap Time"}
+                        labels={
+                            "LapNumber": "Lap Number",
+                            "LapTimeSeconds": "Lap Time"
+                        },
+                        title=f"{selected_driver} - Lap Time vs Tyre Compound"
                     )
 
-                    # format hovering tool
+                    # Optional: simple hover in seconds (no formatting function)
                     fig.update_traces(
-                        customdata=driver_laps[["LapTimeStr"]],
-                        hovertemplate="Lap %{x}<br>Lap Time: %{customdata[0]}<br><extra></extra>"
+                        hovertemplate="Lap %{x}s<extra></extra>"
                     )
 
-                    # format y-axis ticks to min:sec (no milliseconds)
+                    # Manually format Y-axis ticks as min:sec.millis
                     min_time = driver_laps["LapTimeSeconds"].min()
                     max_time = driver_laps["LapTimeSeconds"].max()
-                    tick_vals = np.linspace(min_time, max_time, num=8)
+                    tick_vals = np.linspace(min_time, max_time, 8)
 
                     def format_tick(v):
-                        total_seconds = int(v)
-                        minutes = total_seconds // 60
-                        seconds = total_seconds % 60
-                        return f"{minutes}:{seconds:02}"
+                        minutes = int(v // 60)
+                        seconds = v % 60
+                        return f"{minutes}:{seconds:06.3f}"
 
                     tick_texts = [format_tick(v) for v in tick_vals]
 
                     fig.update_yaxes(
-                        tickmode='array',
+                        tickmode="array",
                         tickvals=tick_vals,
-                        ticktext=tick_texts
+                        ticktext=tick_texts,
+                        title="Lap Time (min:sec.sss)"
                     )
 
-                    # layout adjustments
+                    # Final layout
                     fig.update_layout(
-                        title="Tyre and Lap Time Performance",
                         template="plotly_white",
-                        font=dict(color="white"),
-                        xaxis=dict(title="Lap Number"),
-                        yaxis=dict(title="Lap Time"),
+                        height=450,
+                        margin=dict(t=80),
+                        font=dict(size=13),
                         legend=dict(
                             orientation="h",
-                            x=1.0,
-                            xanchor='right',
-                            y=1.1,
-                            yanchor='bottom',
-                        ),
-                        height=400,
-                        margin=dict(t=110),
+                            yanchor="bottom",
+                            y=1.05,
+                            xanchor="right",
+                            x=1
+                        )
                     )
 
+                    # Display in Streamlit
                     st.plotly_chart(
-                        fig, 
+                        fig,
                         use_container_width=True,
                         config={
-                        "modeBarButtonsToRemove": ["toImage"],
-                        "displaylogo": False
+                            "displaylogo": False,
+                            "modeBarButtonsToRemove": ["toImage"]
                         }
                     )
 
