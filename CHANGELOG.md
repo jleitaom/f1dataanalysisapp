@@ -8,15 +8,19 @@ All major/notable changes to this project will be documented in this file.
   - Round Number
   - Country
   - Location
-  - Number of corners
-  - Total track distance
-- New chart in tyre performance tab with Weather conditions
+  - Number of Corners
+  - Total Track Distance
+  - Track Layout
+  - Session Weather Conditions
+- New tab with overall drivers pace
 - New tab with race and sprint position changes
-- Ability to change quicklaps threshold from 101% to 300%
+- Ability to change quicklaps threshold from 101% to 300% in "Overall Pace" and "Driver Performance" tabs
+- Info messages to help users understand how the quicklaps threshold may affect the charts
 
 ### Changed
 - Major code refactor to improve readability, maintainability and error handling
-- Changed GP selection dropdown to only show Grand Prix events with available session data
+- Improved GP selection menu. Now it only shows Grand Prix events with available session data
+- Updated app theme colors for aesthetic purposes
 
 ### Fixed
 - Fixed issue where the last available Grand Prix was not shown in the selection menu

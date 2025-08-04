@@ -60,6 +60,7 @@ def main():
     selected_gp = None
     selected_session = None
     session = None
+    threshold_default = 107
 
     # get current year
     current_year = datetime.now().year
@@ -179,25 +180,27 @@ def main():
         if selected_session == 'R' or selected_session == 'S':
             
             # tabs for Race and Sprint sessions
-            tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-                                            "Grand Prix Overview",
-                                            "Session Results",
-                                            "Position Changes",
-                                            "Fastest Lap Telemetry",
-                                            "Tyre Performance & Weather",
-                                            "Tyre Strategy"
-                                            ])
+            tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+                                                        "Grand Prix Overview",
+                                                        "Session Results",
+                                                        "Position Changes",
+                                                        "Fastest Lap Telemetry",
+                                                        "Overall Pace",
+                                                        "Driver Performance",
+                                                        "Tyre Strategy"
+                                                        ])
         else:
 
             # tabs for Qualifying and Sprint Qualifying sessions
-            tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-                                            "Grand Prix Overview",
-                                            "Session Results",
-                                            "Qualifying Results",
-                                            "Fastest Lap Telemetry",
-                                            "Tyre Performance & Weather",
-                                            "Tyre Strategy"
-                                            ])
+            tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+                                                        "Grand Prix Overview",
+                                                        "Session Results",
+                                                        "Qualifying Results",
+                                                        "Fastest Lap Telemetry",
+                                                        "Overall Pace",
+                                                        "Driver Performance",
+                                                        "Tyre Strategy"
+                                                        ])
 
 
 
@@ -249,84 +252,175 @@ def main():
                     with st.container(border=True):
                         st.metric(label='Number of Corners', value=f"{num_corners:.0f} corners")
                 
-                # circuit map
                 with st.container(border=True): 
-                    def rotate(xy, *, angle):
-                        """ 
-                        Rotate coordinates by a given angle in radians.
-                        """
-                        rot_mat = np.array([[np.cos(angle), np.sin(angle)],
-                                            [-np.sin(angle), np.cos(angle)]])
-                        return np.matmul(xy, rot_mat)
 
-                    # prepare and rotate track
-                    track = pos.loc[:, ('X', 'Y')].to_numpy()
-                    track_angle = circuit_info.rotation / 180 * np.pi
-                    rotated_track = rotate(track, angle=track_angle)
+                    col1, col2 = st.columns((1, 2))
 
-                    # track trace
-                    track_trace = go.Scatter(
-                        x=rotated_track[:, 0],
-                        y=rotated_track[:, 1],
-                        mode='lines',
-                        line=dict(color='white', width=4),
-                        name='Track'
-                    )
+                    # track layout
+                    with col1:
+                        def rotate(xy, *, angle):
+                            """ 
+                            Rotate coordinates by a given angle in radians.
+                            """
+                            rot_mat = np.array([[np.cos(angle), np.sin(angle)],
+                                                [-np.sin(angle), np.cos(angle)]])
+                            return np.matmul(xy, rot_mat)
 
-                    # corner markers and labels
-                    offset_vector = [500, 0]
-                    corner_labels = []
-                    corner_lines = []
+                        # prepare and rotate track
+                        track = pos.loc[:, ('X', 'Y')].to_numpy()
+                        track_angle = circuit_info.rotation / 180 * np.pi
+                        rotated_track = rotate(track, angle=track_angle)
 
-                    for _, corner in circuit_info.corners.iterrows():
-                        txt = f"{corner['Number']}{corner['Letter']}"
-                        offset_angle = corner['Angle'] / 180 * np.pi
-                        offset_x, offset_y = rotate(offset_vector, angle=offset_angle)
-                        text_x, text_y = rotate([corner['X'] + offset_x, corner['Y'] + offset_y], angle=track_angle)
-                        track_x, track_y = rotate([corner['X'], corner['Y']], angle=track_angle)
-
-                        corner_labels.append(go.Scatter(
-                            x=[text_x], y=[text_y],
-                            mode='markers+text',
-                            marker=dict(size=12, color='yellow'),
-                            text=[txt],
-                            textposition='middle center',
-                            textfont=dict(color='black', size=8),
-                            hoverinfo='skip',
-                            showlegend=False
-                        ))
-
-                        corner_lines.append(go.Scatter(
-                            x=[track_x, text_x],
-                            y=[track_y, text_y],
+                        # track trace
+                        track_trace = go.Scatter(
+                            x=rotated_track[:, 0],
+                            y=rotated_track[:, 1],
                             mode='lines',
-                            line=dict(color='white', width=1),
-                            showlegend=False
+                            line=dict(color='white', width=4),
+                            name='Track'
+                        )
+
+                        # corner markers and labels
+                        offset_vector = [500, 0]
+                        corner_labels = []
+                        corner_lines = []
+
+                        for _, corner in circuit_info.corners.iterrows():
+                            txt = f"{corner['Number']}{corner['Letter']}"
+                            offset_angle = corner['Angle'] / 180 * np.pi
+                            offset_x, offset_y = rotate(offset_vector, angle=offset_angle)
+                            text_x, text_y = rotate([corner['X'] + offset_x, corner['Y'] + offset_y], angle=track_angle)
+                            track_x, track_y = rotate([corner['X'], corner['Y']], angle=track_angle)
+
+                            corner_labels.append(go.Scatter(
+                                x=[text_x], y=[text_y],
+                                mode='markers+text',
+                                marker=dict(size=12, color='yellow'),
+                                text=[txt],
+                                textposition='middle center',
+                                textfont=dict(color='black', size=8),
+                                hoverinfo='skip',
+                                showlegend=False
+                            ))
+
+                            corner_lines.append(go.Scatter(
+                                x=[track_x, text_x],
+                                y=[track_y, text_y],
+                                mode='lines',
+                                line=dict(color='white', width=1),
+                                showlegend=False
+                            ))
+
+                        fig = go.Figure(data=[track_trace] + corner_lines + corner_labels)
+
+                        fig.update_layout(
+                            title="Track Layout",
+                            height=450,
+                            xaxis=dict(visible=False),
+                            yaxis=dict(visible=False, scaleanchor='x', scaleratio=1),
+                            showlegend=False,
+                            margin=dict(t=80, b=20, l=20, r=20)
+                        )
+
+                        st.plotly_chart(
+                            fig, 
+                            use_container_width=True,
+                            config={
+                            "modeBarButtonsToRemove": ["toImage"],
+                            "displaylogo": False
+                            }
+                        )
+                    
+                    # weather conditions
+                    with col2:
+                        # extract weather data
+                        weather_data = session.weather_data
+                        weather_data['TimeHours'] = weather_data['Time'].dt.total_seconds() / 3600
+                        air_temp = weather_data['AirTemp']
+                        track_temp = weather_data['TrackTemp']
+                        rainfall = weather_data['Rainfall'].astype(int)
+
+
+                        fig = go.Figure()
+
+                        # track temperature
+                        fig.add_trace(go.Scatter(
+                            x=weather_data['TimeHours'],
+                            y=track_temp,
+                            name='Track Temp [°C]',
+                            mode='lines',
+                            line=dict(width=2, color='crimson'),
+                            hovertemplate='Track Temp: %{y:.1f}°C<extra></extra>'
                         ))
 
-                    fig = go.Figure(data=[track_trace] + corner_lines + corner_labels)
-                    fig.update_layout(
-                        height=450,
-                        xaxis=dict(visible=False),
-                        yaxis=dict(visible=False, scaleanchor='x', scaleratio=1),
-                        showlegend=False,
-                        margin=dict(t=80, b=20, l=20, r=20)
-                    )
+                        # air temperature
+                        fig.add_trace(go.Scatter(
+                            x=weather_data['TimeHours'],
+                            y=air_temp,
+                            name='Air Temp [°C]',
+                            mode='lines',
+                            line=dict(width=2, dash='dash', color='yellow'),
+                            hovertemplate='Air Temp: %{y:.1f}°C<extra></extra>'
+                        ))
 
-                    st.plotly_chart(
-                        fig, 
-                        use_container_width=True,
-                        config={
-                        "modeBarButtonsToRemove": ["toImage"],
-                        "displaylogo": False
-                        }
-                    )
+                        # humidity
+                        fig.add_trace(go.Scatter(
+                            x=weather_data['TimeHours'],
+                            y=weather_data['Humidity'],
+                            name='Humidity [%]',
+                            mode='lines',
+                            line=dict(width=1, color='deepskyblue', dash='dot'),
+                            yaxis='y2',
+                            hovertemplate='Humidity: %{y:.0f}%<extra></extra>'
+                        ))
+
+                        # rainfall
+                        fig.add_trace(go.Scatter(
+                            x=weather_data['TimeHours'],
+                            y=rainfall * track_temp.max(),
+                            fill='tozeroy',
+                            name='Rainfall',
+                            mode='none',
+                            fillcolor='rgba(0, 100, 255, 0.3)',
+                            hoverinfo='skip'
+                        ))
+
+
+                        fig.update_layout(
+                            title="Weather Conditions",
+                            xaxis_title='Session Time (h)',
+                            yaxis=dict(
+                                title='Temperature [°C]'
+                            ),
+                            yaxis2=dict(
+                                title='Humidity [%]',
+                                overlaying='y',
+                                side='right',
+                                showgrid=False
+                            ),
+                            legend=dict(
+                                orientation="h",
+                                x=1.0,
+                                xanchor='right',
+                                y=1.1,
+                                yanchor='bottom',
+                            ),
+                            template='plotly_white',
+                            hovermode="x unified"
+                        )
+
+                        st.plotly_chart(
+                            fig, 
+                            use_container_width=True,
+                            config={
+                            "modeBarButtonsToRemove": ["toImage"],
+                            "displaylogo": False
+                            }
+                        )
             
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
                 return None
-
-
 
 
         with tab2: # session results
@@ -375,8 +469,6 @@ def main():
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
                 return None
-
-
 
 
         # tab3:
@@ -431,7 +523,7 @@ def main():
                     fig.update_xaxes(title="Lap Number")
                     
                     fig.update_layout(
-                        title="Position Changes During Session",
+                        title="Position Changes during Session",
                         template="plotly_white",
                         height=600,
                         legend_title="Driver",
@@ -547,8 +639,6 @@ def main():
                 except Exception as e:
                     st.error(f'No session data: {str(e)}')
                     return None
-
-
 
 
         with tab4: # fastest lap telemetry
@@ -916,9 +1006,172 @@ def main():
                 return None
 
 
+        with tab5: # overall pace
+            try:
+
+                # driver and compound colors
+                driver_colors = fastf1.plotting.get_driver_color_mapping(session=session)
+                compound_colors = fastf1.plotting.get_compound_mapping(session=session)
+
+                all_drivers = session.drivers
+                driver_laps = session.laps.pick_drivers(all_drivers).pick_quicklaps(threshold=threshold_default)
+                driver_laps = driver_laps.reset_index()
+                driver_laps['LapTime(s)'] = driver_laps['LapTime'].dt.total_seconds()
+
+                finishing_order = [session.get_driver(i)["Abbreviation"] for i in all_drivers]
+
+                compound_options = sorted(driver_laps['Compound'].dropna().unique().tolist())
+
+                with st.container(border=True):
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:    
+                        selected_compounds = st.multiselect(
+                            "Select compounds to display:",
+                            options=compound_options,
+                            default=compound_options
+                        )
+
+                    # threshold slider (101% to 300%)
+                    with col2:
+                        threshold_percent = st.slider(
+                            "Threshold (% of fastest lap)",
+                            min_value=101,
+                            max_value=300,
+                            value=107,
+                            step=1,
+                            key="tab5_threshold_slider"
+                        )
+
+                    st.info("""
+                    **Note:**  
+                    Not all laps are equal — some are significantly slower due to **traffic, pit stops, or weather conditions**. To maintain clarity, a threshold (relative to the fastest lap) is applied to exclude these laps.  
+                    By default, FastF1 uses a **107%** threshold, but you can adjust it using the slider. Give it a try — especially if there were changing weather conditions during the session! 😄
+                    """)
+
+                if not selected_compounds:
+                    st.warning("Please select at least one compound to display the data.")
+                else:
+
+                    # convert to 1.1–3.0
+                    threshold_factor = threshold_percent / 100
+                                    
+                    all_drivers = session.drivers
+                    driver_laps = session.laps.pick_drivers(all_drivers).pick_quicklaps(threshold=threshold_factor)
+                    driver_laps = driver_laps.reset_index()
+                    driver_laps['LapTime(s)'] = driver_laps['LapTime'].dt.total_seconds()
+
+                    finishing_order = [session.get_driver(i)["Abbreviation"] for i in all_drivers]
+
+                    compound_options = sorted(driver_laps['Compound'].dropna().unique().tolist())
 
 
-        with tab5:
+                    try:
+                        # --- Utility: Convert hex to RGBA ---
+                        def hex_to_rgba(hex_color, alpha=0.5):
+                            hex_color = hex_color.lstrip('#')
+                            r, g, b = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+                            return f'rgba({r},{g},{b},{alpha})'
+
+                        # Filter data
+                        filtered_laps = driver_laps[driver_laps['Compound'].isin(selected_compounds)]
+
+
+                        fig = go.Figure()
+
+                        # Boxplots per driver
+                        for driver in filtered_laps['Driver'].unique():
+                            df_driver = filtered_laps[filtered_laps['Driver'] == driver]
+                            hex_color = driver_colors.get(driver, "#333333")
+
+                            fig.add_trace(go.Box(
+                                x=[driver] * len(df_driver),
+                                y=df_driver['LapTime(s)'],
+                                name=driver,
+                                marker=dict(size=0),
+                                boxpoints=False,
+                                width=0.8,
+                                whiskerwidth=0.5,
+                                line_width=0.7,
+                                line=dict(color=hex_color),
+                                fillcolor=hex_to_rgba(hex_color, alpha=0.2),
+                                showlegend=False
+                            ))
+
+                        # scatter
+                        for compound in selected_compounds:
+                            df_comp = filtered_laps[filtered_laps['Compound'] == compound]
+                            fig.add_trace(go.Scatter(
+                                x=df_comp['Driver'],
+                                y=df_comp['LapTime(s)'],
+                                mode='markers',
+                                name=compound,
+                                legendgroup=compound,
+                                showlegend=True,
+                                marker=dict(
+                                    color=compound_colors.get(compound, "#999999"),
+                                    size=3
+                                ),
+                                customdata=df_comp[['Driver']],  # envia o piloto como extra info
+                                hovertemplate="Driver: %{customdata[0]}<br>Compound: " + compound + "<extra></extra>"
+                            ))
+
+
+                        # compute tick values
+                        y_min = filtered_laps['LapTime(s)'].min()
+                        y_max = filtered_laps['LapTime(s)'].max()
+                        tick_vals = np.linspace(y_min, y_max, num=10)
+
+                        # format time
+                        def format_time_custom(seconds):
+                            minutes = int(seconds // 60)
+                            secs = int(seconds % 60)
+                            millis = int(round((seconds - int(seconds)) * 1000))
+                            return f"{minutes}:{secs:02d}.{millis:03d}"
+
+                        tick_texts = [format_time_custom(v) for v in tick_vals]
+
+                        fig.update_yaxes(
+                            tickvals=tick_vals,
+                            ticktext=tick_texts
+                        )
+
+                        fig.update_layout(
+                            height=530,
+                            title="Overall Drivers Pace",
+                            legend_title="Compound",
+                            xaxis_title="Driver",
+                            template="plotly_white",
+                            yaxis=dict(
+                                title="Lap Time",
+                                showgrid=True,
+                                gridcolor='rgba(255,255,255,0.03)',
+                            ),
+                            margin=dict(t=100),
+                            font=dict(size=13),
+                            legend=dict(
+                                orientation="h",
+                                yanchor="bottom",
+                                y=1.05,
+                                xanchor="right",
+                                x=1
+                            )
+                        )
+
+                        st.plotly_chart(fig, use_container_width=True)
+            
+                    except Exception as e:
+                        st.warning('No laps match the selected compound(s) and threshold. Try adjusting the filters.')
+                        return None
+                    
+
+            except Exception as e:
+                st.error(f'No session data: {str(e)}')
+                return None
+
+
+        with tab6: #driver performance
             try: 
 
                 with st.container(border=True):
@@ -933,25 +1186,24 @@ def main():
                             key="tab5_selectbox"
                         )
 
-                    # threshold slider (100% to 300%)
+                    # threshold slider (101% to 300%)
                     with col2:
                         threshold_percent = st.slider(
-                            "Lap Time Threshold (% of fastest lap)",
+                            "Threshold (% of fastest lap)",
                             min_value=101,
                             max_value=300,
-                            value=120,
+                            value=107,
                             step=1,
-                            key="tab5_threshold_slider"
+                            key="tab6_threshold_slider"
                         )
                     
                     st.info("""
                     **Note:**  
-                    Not all laps are equal — some are significantly slower due to traffic, pit stops, or changing conditions. To maintain clarity, a threshold is applied to exclude these laps.  
-                    FastF1 API defaults to **107%**, but this app uses a more inclusive **120%** by default to retain potentially useful data.  
-                    Try adjusting the slider to see how the data changes! 😄
+                    Not all laps are equal — some are significantly slower due to **traffic, pit stops, or weather conditions**. To maintain clarity, a threshold (relative to the fastest lap) is applied to exclude these laps.  
+                    By default, FastF1 uses a **107%** threshold, but you can adjust it using the slider. Give it a try — especially if there were changing weather conditions during the session! 😄
                     """)
 
-                # convert to 1.0–2.0
+                # convert to 1.1–3.0
                 threshold_factor = threshold_percent / 100
 
                 if selected_driver:
@@ -1004,13 +1256,13 @@ def main():
                         tickmode="array",
                         tickvals=tick_vals,
                         ticktext=tick_texts,
-                        title="Lap Time (min:sec.sss)"
+                        title="Lap Time"
                     )
 
                     fig.update_layout(
                         template="plotly_white",
                         height=450,
-                        margin=dict(t=80),
+                        margin=dict(t=100),
                         font=dict(size=13),
                         legend=dict(
                             orientation="h",
@@ -1030,100 +1282,13 @@ def main():
                         }
                     )
 
-                    # extract weather data
-                    weather_data = session.weather_data
-                    weather_data['TimeHours'] = weather_data['Time'].dt.total_seconds() / 3600
-                    air_temp = weather_data['AirTemp']
-                    track_temp = weather_data['TrackTemp']
-                    rainfall = weather_data['Rainfall'].astype(int)
-
-
-                    fig = go.Figure()
-
-                    # track temperature
-                    fig.add_trace(go.Scatter(
-                        x=weather_data['TimeHours'],
-                        y=track_temp,
-                        name='Track Temp [°C]',
-                        mode='lines',
-                        line=dict(width=2, color='crimson'),
-                        hovertemplate='Track Temp: %{y:.1f}°C<extra></extra>'
-                    ))
-
-                    # air temperature
-                    fig.add_trace(go.Scatter(
-                        x=weather_data['TimeHours'],
-                        y=air_temp,
-                        name='Air Temp [°C]',
-                        mode='lines',
-                        line=dict(width=2, dash='dash', color='yellow'),
-                        hovertemplate='Air Temp: %{y:.1f}°C<extra></extra>'
-                    ))
-
-                    # humidity
-                    fig.add_trace(go.Scatter(
-                        x=weather_data['TimeHours'],
-                        y=weather_data['Humidity'],
-                        name='Humidity [%]',
-                        mode='lines',
-                        line=dict(width=1, color='deepskyblue', dash='dot'),
-                        yaxis='y2',
-                        hovertemplate='Humidity: %{y:.0f}%<extra></extra>'
-                    ))
-
-                    # rainfall
-                    fig.add_trace(go.Scatter(
-                        x=weather_data['TimeHours'],
-                        y=rainfall * track_temp.max(),
-                        fill='tozeroy',
-                        name='Rainfall',
-                        mode='none',
-                        fillcolor='rgba(0, 100, 255, 0.3)',
-                        hoverinfo='skip'
-                    ))
-
-
-                    fig.update_layout(
-                        title="Weather Conditions",
-                        xaxis_title='Session Time (Hours)',
-                        yaxis=dict(
-                            title='Temperature [°C]'
-                        ),
-                        yaxis2=dict(
-                            title='Humidity [%]',
-                            overlaying='y',
-                            side='right',
-                            showgrid=False
-                        ),
-                        legend=dict(
-                            orientation="h",
-                            x=1.0,
-                            xanchor='right',
-                            y=1.1,
-                            yanchor='bottom',
-                        ),
-                        template='plotly_white',
-                        height=400,
-                        hovermode="x unified"
-                    )
-
-                    st.plotly_chart(
-                        fig, 
-                        use_container_width=True,
-                        config={
-                        "modeBarButtonsToRemove": ["toImage"],
-                        "displaylogo": False
-                        }
-                    )
 
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
                 return None
 
 
-
-
-        with tab6: # tyre strategy
+        with tab7: # tyre strategy
             try:
 
                 # sort drivers by finishing position
@@ -1203,6 +1368,9 @@ def main():
 
     else:
         st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
+
+
+
 
 if __name__ == "__main__":
     st.set_page_config(
