@@ -1,17 +1,29 @@
+# libraries
 import streamlit as st
+import pandas as pd
+import numpy as np
+
 import fastf1 as ff1
 import fastf1.plotting
 from fastf1.plotting import get_driver_style
-import pandas as pd
-import numpy as np
-from datetime import datetime, timezone
+
+from datetime import datetime
+
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
-# FastF1's delta and dark color scheme
-fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme='fastf1')
+
+
+# fastF1's delta and dark color scheme
+fastf1.plotting.setup_mpl(
+    mpl_timedelta_support=True,
+    color_scheme='fastf1'
+)
+
+
+
 
 # load session data function
 @st.cache_resource(show_spinner="Loading session data...")
@@ -29,6 +41,9 @@ def load_session(year, gp_name, session_type):
     except Exception as e:
         st.error(f'Failed to load session: {e}')
         return None
+
+
+
 
 # main function to run the app
 def main():
@@ -183,7 +198,10 @@ def main():
                                             "Tyre Performance & Weather",
                                             "Tyre Strategy"
                                             ])
-        
+
+
+
+
         with tab1: # gp overview
             try:
                 # pre-fetch session/gp information
@@ -308,6 +326,9 @@ def main():
                 st.error(f'No session data: {str(e)}')
                 return None
 
+
+
+
         with tab2: # session results
             try:
                 if selected_session == 'R' or selected_session == 'S':
@@ -354,6 +375,9 @@ def main():
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
                 return None
+
+
+
 
         # tab3:
         if selected_session == 'R' or selected_session == 'S':
@@ -523,6 +547,8 @@ def main():
                 except Exception as e:
                     st.error(f'No session data: {str(e)}')
                     return None
+
+
 
 
         with tab4: # fastest lap telemetry
@@ -888,7 +914,10 @@ def main():
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
                 return None
-        
+
+
+
+
         with tab5:
             try: 
 
@@ -1090,7 +1119,10 @@ def main():
             except Exception as e:
                 st.error(f'No session data: {str(e)}')
                 return None
-        
+
+
+
+
         with tab6: # tyre strategy
             try:
 
