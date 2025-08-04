@@ -1036,7 +1036,7 @@ def main():
                     # threshold slider (101% to 300%)
                     with col2:
                         threshold_percent = st.slider(
-                            "Threshold (% of fastest lap)",
+                            "Threshold (default = 107%)",
                             min_value=101,
                             max_value=300,
                             value=107,
@@ -1044,11 +1044,16 @@ def main():
                             key="tab5_threshold_slider"
                         )
 
-                    st.info("""
-                    **Note:**  
+                    st.info(
+                    """
+                    
+                    **How does threshold works?**
+
                     Not all laps are equal — some are significantly slower due to **traffic, pit stops, or weather conditions**. To maintain clarity, a threshold (relative to the fastest lap) is applied to exclude these laps.  
                     By default, FastF1 uses a **107%** threshold, but you can adjust it using the slider. Give it a try — especially if there were changing weather conditions during the session! 😄
-                    """)
+                    
+                    """
+                    )
 
                 if not selected_compounds:
                     st.warning("Please select at least one compound to display the data.")
@@ -1189,7 +1194,7 @@ def main():
                     # threshold slider (101% to 300%)
                     with col2:
                         threshold_percent = st.slider(
-                            "Threshold (% of fastest lap)",
+                            "Threshold (default = 107%)",
                             min_value=101,
                             max_value=300,
                             value=107,
@@ -1197,11 +1202,16 @@ def main():
                             key="tab6_threshold_slider"
                         )
                     
-                    st.info("""
-                    **Note:**  
+                    st.info(
+                    """
+                    
+                    **How does threshold works?**
+
                     Not all laps are equal — some are significantly slower due to **traffic, pit stops, or weather conditions**. To maintain clarity, a threshold (relative to the fastest lap) is applied to exclude these laps.  
                     By default, FastF1 uses a **107%** threshold, but you can adjust it using the slider. Give it a try — especially if there were changing weather conditions during the session! 😄
-                    """)
+                    
+                    """
+                    )
 
                 # convert to 1.1–3.0
                 threshold_factor = threshold_percent / 100
