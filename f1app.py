@@ -1047,7 +1047,7 @@ def main():
                     st.info(
                     """
                     
-                    **How does threshold works?**
+                    **How does threshold work?**
 
                     Not all laps are equal — some are significantly slower due to **traffic, pit stops, or weather conditions**. To maintain clarity, a threshold (relative to the fastest lap) is applied to exclude these laps.  
                     By default, FastF1 uses a **107%** threshold, but you can adjust it using the slider. Give it a try — especially if there were changing weather conditions during the session! 😄
@@ -1205,7 +1205,7 @@ def main():
                     st.info(
                     """
                     
-                    **How does threshold works?**
+                    **How does threshold work?**
 
                     Not all laps are equal — some are significantly slower due to **traffic, pit stops, or weather conditions**. To maintain clarity, a threshold (relative to the fastest lap) is applied to exclude these laps.  
                     By default, FastF1 uses a **107%** threshold, but you can adjust it using the slider. Give it a try — especially if there were changing weather conditions during the session! 😄
