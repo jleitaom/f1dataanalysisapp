@@ -426,7 +426,6 @@ def main():
         with tab2: # session results
             try:
                 if selected_session == 'R' or selected_session == 'S':
-                    session.results["WL_positions"] = (session.results["GridPosition"] - session.results["Position"]).fillna(0).astype(int)
 
                     results_data = {
                         'Position': session.results['Position'].fillna(0).astype(int).astype(str),
@@ -470,18 +469,20 @@ def main():
                 st.error(f'No session data: {str(e)}')
                 return None
 
-
         # tab3:
-        if selected_session == 'R' or selected_session == 'S':
+        if selected_session == 'R' or selected_session == 'S': # position changes
             with tab3:
+                session.results["WL_positions"] = (session.results["GridPosition"] - session.results["Position"]).fillna(0).astype(int)
+
                 try:
                     laps = session.laps
+
                     driver_styles = {
                         drv: get_driver_style(drv, session=session, style=['color', 'linestyle'])
                         for drv in laps['Driver'].unique()
                     }
 
-                    # sort drivers by finishing position
+                    # ordem por posição final
                     finish_order = (
                         session.results[["Abbreviation", "Position"]]
                         .sort_values("Position")
@@ -489,14 +490,39 @@ def main():
                     )
                     sorted_drivers = finish_order["Abbreviation"].tolist()
 
-                    # include any drivers missing from results (e.g., DNF)
+                    # acrescenta DNF/DNS que não estejam em finish_order
                     all_drivers = sorted(laps['Driver'].unique())
                     sorted_drivers += [drv for drv in all_drivers if drv not in sorted_drivers]
+
+                    # mapa de posição de grelha por piloto
+                    grid_map = session.results.set_index("Abbreviation")["GridPosition"].to_dict()
 
                     fig = go.Figure()
 
                     for drv in sorted_drivers:
-                        drv_laps = laps.pick_drivers(drv).sort_values(by="LapNumber")
+                        drv_laps = (
+                            laps.pick_drivers(drv)
+                            .sort_values(by="LapNumber")
+                            [["LapNumber", "Position"]]
+                            .copy()
+                        )
+
+                        # cria "volta 0" = posição de grelha (se existir)
+                        grid_pos = grid_map.get(drv, np.nan)
+
+                        if pd.notna(grid_pos) and int(grid_pos) > 0:
+                            start_pos = int(grid_pos)
+                        else:
+                            # fallback (ex.: partiu das boxes -> GridPosition==0/NaN)
+                            start_pos = int(drv_laps["Position"].iloc[0]) if not drv_laps.empty else np.nan
+
+                        start_row = pd.DataFrame({"LapNumber": [0], "Position": [start_pos]})
+
+                        drv_laps = pd.concat([start_row, drv_laps], ignore_index=True)
+
+                        # etiqueta para hover: "Start" na volta 0
+                        drv_laps["LapLabel"] = drv_laps["LapNumber"].apply(lambda n: "Start" if n == 0 else f"{n}")
+
                         dash_style = DASH_MAP.get(driver_styles[drv].get('linestyle', 'solid'), 'solid')
 
                         fig.add_trace(go.Scatter(
@@ -507,21 +533,33 @@ def main():
                             line=dict(
                                 color=driver_styles[drv]['color'],
                                 dash=dash_style,
-                                width=1.2
+                                width=1.8
                             ),
-                            hovertemplate="Pos %{y}<extra>%{fullData.name}</extra>"
+                            customdata=drv_laps[["LapLabel"]],
+                            hovertemplate="P%{y}<extra>%{fullData.name}</extra>"
+
                         ))
 
+                    # eixo Y (P1 no topo)
                     fig.update_yaxes(
                         autorange="reversed",
                         title="Race Position",
                         tickmode='array',
                         tickvals=[1, 5, 10, 15, 20],
-                        ticktext=['P1', 'P5', 'P10', 'P15', 'P20']
+                        ticktext=['1', '5', '10', '15', '20']
                     )
-                    
-                    fig.update_xaxes(title="Lap Number")
-                    
+
+                    # eixo X com 'Start' no zero
+                    max_lap = int(laps["LapNumber"].max())
+
+                    fig.update_xaxes(
+                        title="Lap Number",
+                        tickmode='array',
+                        tickvals=list(range(0, max_lap + 1, 5)) if max_lap > 5 else list(range(0, max_lap + 1)),
+                        ticktext=['Start' if v == 0 else str(v) for v in (list(range(0, max_lap + 1, 5)) if max_lap > 5 else list(range(0, max_lap + 1)))],
+                        range=[-0.5, max_lap + 0.5]  # forces 0 to appear
+                    )
+
                     fig.update_layout(
                         title="Position Changes during Session",
                         template="plotly_white",
@@ -531,12 +569,9 @@ def main():
                     )
 
                     st.plotly_chart(
-                        fig, 
+                        fig,
                         use_container_width=True,
-                        config={
-                        "modeBarButtonsToRemove": ["toImage"],
-                        "displaylogo": False
-                        }
+                        config={"modeBarButtonsToRemove": ["toImage"], "displaylogo": False}
                     )
 
                 except Exception as e:
@@ -857,12 +892,12 @@ def main():
                         )
 
                         # update axes labels
-                        fig.update_yaxes(dtick=50, title_text="Speed", row=1, col=1)
-                        fig.update_yaxes(title_text="Delta", row=2, col=1)
-                        fig.update_yaxes(title_text="Throttle", row=3, col=1)
+                        fig.update_yaxes(dtick=50, title_text="Speed (km/h)", row=1, col=1)
+                        fig.update_yaxes(title_text="Delta (s)", row=2, col=1)
+                        fig.update_yaxes(title_text="Throttle (%)", row=3, col=1)
                         fig.update_yaxes(title_text="Brake", row=4, col=1)
                         fig.update_yaxes(title_text="Gear", row=5, col=1)
-                        fig.update_xaxes(title_text="Distance", row=5, col=1)
+                        fig.update_xaxes(title_text="Distance (m)", row=5, col=1)
 
                         st.plotly_chart(
                             fig, 
@@ -986,11 +1021,11 @@ def main():
                             )
 
                         # update axes labels
-                        fig.update_yaxes(dtick=50, title_text="Speed", row=1, col=1)
-                        fig.update_yaxes(title_text="Throttle", row=2, col=1)
+                        fig.update_yaxes(dtick=50, title_text="Speed (km/h)", row=1, col=1)
+                        fig.update_yaxes(title_text="Throttle (%)", row=2, col=1)
                         fig.update_yaxes(title_text="Brake", row=3, col=1)
                         fig.update_yaxes(title_text="Gear", row=4, col=1)
-                        fig.update_xaxes(title_text="Distance", row=4, col=1)
+                        fig.update_xaxes(title_text="Distance (m)", row=4, col=1)
 
                         st.plotly_chart(
                             fig, 
@@ -1357,10 +1392,17 @@ def main():
                     yaxis_title="Driver",
                     barmode='stack',
                     font=dict(color="white"),
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.05,
+                        xanchor="right",
+                        x=1
+                    ),
                     legend_traceorder="normal",
                     height=600,
                     xaxis=dict(tickvals=list(range(0, int(max(session.laps["LapNumber"])) + 1, 5))),
-                    margin=dict(t=40)
+                    margin=dict(t=85)
                 )
 
                 st.plotly_chart(
