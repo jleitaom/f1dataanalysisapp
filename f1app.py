@@ -426,6 +426,8 @@ def main():
         with tab2: # session results
             try:
                 if selected_session == 'R' or selected_session == 'S':
+                    
+                    session.results["WL_positions"] = (session.results["GridPosition"] - session.results["Position"]).fillna(0).astype(int)
 
                     results_data = {
                         'Position': session.results['Position'].fillna(0).astype(int).astype(str),
@@ -472,8 +474,6 @@ def main():
         # tab3:
         if selected_session == 'R' or selected_session == 'S': # position changes
             with tab3:
-                session.results["WL_positions"] = (session.results["GridPosition"] - session.results["Position"]).fillna(0).astype(int)
-
                 try:
                     laps = session.laps
 
