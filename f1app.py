@@ -141,7 +141,7 @@ def main():
     
     # select session type
     selected_session = st.sidebar.selectbox(
-    "Select Session",
+    "Select Session Type",
     session_names,
     index=None,
     placeholder="Select a session",
