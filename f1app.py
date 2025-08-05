@@ -7,11 +7,11 @@ import fastf1 as ff1
 import fastf1.plotting
 from fastf1.plotting import get_driver_style
 
-from datetime import datetime
-
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
+from datetime import datetime
 
 
 
@@ -178,7 +178,7 @@ def main():
     if session:
         
         if selected_session == 'R' or selected_session == 'S':
-            
+
             # tabs for Race and Sprint sessions
             tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
                                                         "Grand Prix Overview",
