@@ -68,7 +68,7 @@ def main():
     # select session
     selected_year = st.sidebar.selectbox(
         "Select year", 
-        range(current_year, 2015, -1),
+        range(current_year, 2017, -1),
         index=None,
         placeholder="Select a year"
     )
