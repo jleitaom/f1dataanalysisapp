@@ -14,6 +14,7 @@ All major/notable changes to this project will be documented in this file.
   - Session Weather Conditions
 - New tab with overall drivers pace
 - New tab with race and sprint position changes
+- New tab with detailed qualifying results
 - Ability to change quicklaps threshold from 101% to 300% in "Overall Pace" and "Driver Performance" tabs
 - Info messages to help users understand how the quicklaps threshold may affect the charts
 
