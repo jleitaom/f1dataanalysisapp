@@ -75,7 +75,7 @@ def main():
 
     if selected_year is None:
         st.sidebar.warning("Please select a year to continue.")
-        st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
+        st.warning("To continue, please make sure you have selected a year, Grand Prix and session type.")
         return
 
     def get_event_first_session_date(event_schedule):
@@ -122,7 +122,7 @@ def main():
 
     if selected_gp is None:
         st.sidebar.warning("Please select a Grand Prix to continue.")
-        st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
+        st.warning("To continue, please make sure you have selected a year, Grand Prix and session type.")
         return
     
     gp_to_official = dict(zip(available_schedule['EventName'], available_schedule['OfficialEventName']))
@@ -155,7 +155,7 @@ def main():
     
     if selected_session is None:
         st.sidebar.warning("Please select a session type to continue.")
-        st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
+        st.warning("To continue, please make sure you have selected a year, Grand Prix and session type.")
         return
 
     st.sidebar.markdown(" ")
@@ -319,7 +319,8 @@ def main():
                             xaxis=dict(visible=False),
                             yaxis=dict(visible=False, scaleanchor='x', scaleratio=1),
                             showlegend=False,
-                            margin=dict(t=80, b=20, l=20, r=20)
+                            margin=dict(t=80, b=20, l=20, r=20),
+                            hovermode=False
                         )
 
                         st.plotly_chart(
@@ -1419,7 +1420,7 @@ def main():
                 return None
 
     else:
-        st.warning("To continue, please make sure you have selected a year, Grand Prix, and session type.")
+        st.warning("To continue, please make sure you have selected a year, Grand Prix and session type.")
 
 
 
