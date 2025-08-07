@@ -9,7 +9,7 @@ After analyzing a few specific moments in Formula 1, I noticed my friends kept a
 
 The purpose of this tool is to analyze F1 session data with precision, through highly interactive visualizations built with Plotly. It offers an intuitive and interactive experience, making the data accessible to both enthusiasts and analysts looking to dive deeper into the sport.
 
-![How to load session demo](assets/loadingsession.gif)
+![How to load session demo](https://github.com/jleitaom/f1dataanalysisapp/blob/main/assets/loadingsession_gif.gif)
 
 ### 1. Features
 
