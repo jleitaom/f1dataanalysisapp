@@ -1,36 +1,36 @@
 # 🏎️ Interactive Formula 1 Data Analysis Tool
 
+### App:
+https://f1dataanalysisapp.streamlit.app/
+
 ### Description:
 
-- Web application for analyzing Formula 1 data, coded in Python using Streamlit and FastF1 API.
+After analyzing a few specific moments in Formula 1, I noticed my friends kept asking for more charts and insights from other races. That’s when I realized I could turn this growing interest into an opportunity: to build a web app that allows anyone to explore F1 data throughout each race weekend.
 
-- The purpose of this tool is to explore session data, driver telemetry, tire performance and strategies across various Grand Prix events. It provides an intuitive and interactive interface, making the data accessible to enthusiasts and analysts alike.
+The purpose of this tool is to analyze F1 session data with precision, through highly interactive visualizations built with Plotly. It offers an intuitive and interactive experience, making the data accessible to both enthusiasts and analysts looking to dive deeper into the sport.
 
-- **Streamlit App**: https://f1dataanalysisapp.streamlit.app/
 
 ### 1. Features
 
-- **Session Results**: Summary table with race results, qualifying times and driver performance metrics.
+The app allows users to explore different Formula 1 events by selecting the **year**, **Grand Prix** and **session type** they wish to analyze.
+To ensure a smooth and intuitive experience, users are guided through the process with helpful messages and instructions, making the app easy and efficient to use.
 
-- **Fastest Lap Telemetry**: Visual comparison of telemetry data (speed, throttle, brake) for drivers’ fastest laps.
+Available sessions range from **2018 to the current season**. For the ongoing season, only **Grand Prix events with available data** are shown — ensuring users don’t attempt to load sessions that haven’t yet occurred or been processed.
+Depending on the event format, users can choose between the following session types:
+**Race**, **Qualifying**, **Sprint**, or **Sprint Qualifying**.
 
-- **Tire & Lap Time Performance**: Scatter plots showing tire compound performance over laps for selected drivers.
+Typically, data is made available by the API **shortly after the end of each session**, enabling users to analyze and explore the session almost in real time.
 
-- **Tire Strategy Visualization**: Bar charts displaying drivers’ stint lengths and compounds used.
+### 2. Featured Tabs
 
-### 2. User Experience
-**Ease of Use**:
--  Simple sidebar for selecting year, race, and session type.
-- Tabs to separate different visualizations.
+- Grand Prix Overview
+- Session Results
+- Race Position Changes & Detailed Qualifying Results
+- Fastest Lap Telemetry
+- Overall Pace
+- Driver Performance
+- Tyre Strategy
 
-**Interactive Visuals**:
-- Hover effects and legends for detailed insights.
+### 2. Acknowledgements
 
-### 3. On-Going Improvements
-
--  Including weather data to correlate race strategies with conditions.
--  Expanding analytics to include team-level comparisons.
-
-### 4. Acknowledgments
-
-This project relies heavily on the data provided by the FastF1 Python Package ([fastf1_documentation](https://docs.fastf1.dev/))
+This project relies heavily on the data provided by the FastF1 Package ([fastf1_documentation](https://docs.fastf1.dev/))
