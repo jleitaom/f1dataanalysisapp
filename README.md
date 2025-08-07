@@ -36,3 +36,5 @@ Typically, data is made available by the API **shortly after the end of each ses
 ### 2. Acknowledgements
 
 This project relies heavily on the data provided by the FastF1 Package ([fastf1_documentation](https://docs.fastf1.dev/))
+
+[View Changelog](CHANGELOG.md)
