@@ -1,4 +1,4 @@
-# 🏎️ Interactive Formula 1 Data Analysis Tool
+# 🏎️ Interactive F1 Data APP
 
 ### App:
 https://f1dataanalysisapp.streamlit.app/
