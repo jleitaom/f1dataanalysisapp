@@ -33,10 +33,10 @@ Typically, data is made available by the API **shortly after the end of each ses
 - Driver Performance
 - Tyre Strategy
 
-### 2. Acknowledgements
+### 3. Acknowledgements
 
 This project relies heavily on the data provided by the FastF1 Package ([fastf1_documentation](https://docs.fastf1.dev/))
 
-### 3. Changelog
+### 4. Changelog
 
 [View Changelog](CHANGELOG.md)
