@@ -1,6 +1,5 @@
-streamlit
-fastf1
-pandas
-numpy
-plotly
-datetime
+streamlit==1.53.0
+fastf1==3.8.3
+pandas==2.3.3
+numpy==2.2.6
+plotly==6.5.2

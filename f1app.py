@@ -12,6 +12,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from datetime import datetime
+import logging
+import os
+import tempfile
 
 
 
@@ -25,21 +28,104 @@ fastf1.plotting.setup_mpl(
 
 
 
+# fastf1 http cache, so repeated loads don't hit the f1 api again
+@st.cache_resource(show_spinner=False)
+def enable_fastf1_cache():
+    """
+    Point fastF1 at an explicit, writable cache directory.
+
+    On a hosted container the default cache location may not be writable, and
+    without a cache every session load goes out to the f1 api from scratch.
+    """
+    cache_dir = os.environ.get(
+        "FASTF1_CACHE",
+        os.path.join(tempfile.gettempdir(), "fastf1_cache")
+    )
+    try:
+        os.makedirs(cache_dir, exist_ok=True)
+        ff1.Cache.enable_cache(cache_dir)
+    except Exception as e:
+        st.warning(f"Could not enable the FastF1 cache ({e}). Loading will be slower.")
+    return cache_dir
+
+
+
+
+class SessionLoadError(Exception):
+    """
+    Raised when a session could not be loaded, carrying whatever FastF1 logged
+    about the underlying failure.
+    """
+    def __init__(self, message, details=""):
+        super().__init__(message)
+        self.details = details
+
+
+
+
+class FastF1LogCollector(logging.Handler):
+    """
+    Collect FastF1's own warnings and error tracebacks while a session loads.
+
+    `Session.load` catches errors internally and only logs them (see
+    `fastf1.logger.soft_exceptions`), so the real cause - an http status, a
+    timeout - never reaches the app. Tracebacks are logged at DEBUG level with
+    `exc_info`, which is why this handler listens below WARNING.
+    """
+    def __init__(self):
+        super().__init__(level=logging.DEBUG)
+        self.setFormatter(logging.Formatter("%(levelname)s %(name)s: %(message)s"))
+        self.messages = []
+
+    def emit(self, record):
+        if record.levelno >= logging.WARNING or record.exc_info:
+            self.messages.append(self.format(record))
+
+
+
+
 # load session data function
-@st.cache_resource(show_spinner="Loading session data...")
-def load_session(year, gp_name, session_type):
+@st.cache_resource(show_spinner="Loading session data...", max_entries=3)
+def fetch_session(year, gp_name, session_type):
     """
     Load the session data for the given year, Grand Prix name, and session type.
+
+    Raises `SessionLoadError` instead of returning None so that a failed load is
+    not cached: streamlit does not cache exceptions, so a transient api failure
+    is retried on the next run rather than sticking until the app restarts.
     """
+    enable_fastf1_cache()
+
+    collector = FastF1LogCollector()
+    ff1_logger = logging.getLogger("fastf1")
+    ff1_logger.addHandler(collector)
+
     try:
         session = ff1.get_session(year, gp_name, session_type)
         session.load()
-        
+
         if session.laps.empty:
             st.warning("Session loaded, but telemetry is not yet available. Try again in a few minutes.")
         return session
     except Exception as e:
+        raise SessionLoadError(str(e), "\n".join(collector.messages)) from e
+    finally:
+        ff1_logger.removeHandler(collector)
+
+
+
+
+def load_session(year, gp_name, session_type):
+    """
+    Load a session and report why it failed, if it did.
+    """
+    try:
+        return fetch_session(year, gp_name, session_type)
+    except SessionLoadError as e:
         st.error(f'Failed to load session: {e}')
+        if e.details:
+            with st.expander("What FastF1 reported"):
+                st.code(e.details)
         return None
 
 
