@@ -2,6 +2,13 @@
 
 All major/notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2026-08-04
+### Changed
+- Removed the Streamlit Community Cloud deployment. The F1 livetiming API returns
+  `HTTP 403` to requests originating from datacenter IP ranges, so the hosted app
+  could no longer load any session data. The same requests succeed from a local
+  machine, and the app remains fully functional when run locally.
+
 ## [2.0.0] - 2025-08-05
 ### Added
 - New tab with Grand Prix overview
