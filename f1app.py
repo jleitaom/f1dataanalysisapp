@@ -84,6 +84,33 @@ class FastF1LogCollector(logging.Handler):
 
 
 
+def probe_livetiming(api_path):
+    """
+    Ask both livetiming hosts for this session directly and report the status.
+
+    FastF1 returns None for any non-200 response and never records the status
+    code, so a refused request and genuinely missing data both surface as
+    `SessionNotAvailableError`. This only runs after a load has already failed.
+    """
+    try:
+        import requests
+        from fastf1._api import base_url, base_url_mirror, headers, pages
+    except Exception as e:
+        return f"Could not probe the livetiming hosts: {e}"
+
+    lines = []
+    for label, base in (("primary", base_url), ("mirror", base_url_mirror)):
+        url = base + api_path + pages['session_info']
+        try:
+            r = requests.get(url, headers=headers, timeout=15)
+            lines.append(f"{label}: HTTP {r.status_code}, {len(r.content)} bytes -> {url}")
+        except Exception as e:
+            lines.append(f"{label}: {type(e).__name__}: {e} -> {url}")
+    return "\n".join(lines)
+
+
+
+
 # load session data function
 @st.cache_resource(show_spinner="Loading session data...", max_entries=3)
 def fetch_session(year, gp_name, session_type):
@@ -99,6 +126,7 @@ def fetch_session(year, gp_name, session_type):
     collector = FastF1LogCollector()
     ff1_logger = logging.getLogger("fastf1")
     ff1_logger.addHandler(collector)
+    session = None
 
     try:
         session = ff1.get_session(year, gp_name, session_type)
@@ -108,7 +136,11 @@ def fetch_session(year, gp_name, session_type):
             st.warning("Session loaded, but telemetry is not yet available. Try again in a few minutes.")
         return session
     except Exception as e:
-        raise SessionLoadError(str(e), "\n".join(collector.messages)) from e
+        details = "\n".join(collector.messages)
+        api_path = getattr(session, "api_path", None)
+        if api_path:
+            details = f"{probe_livetiming(api_path)}\n\n{details}"
+        raise SessionLoadError(str(e), details) from e
     finally:
         ff1_logger.removeHandler(collector)
 
