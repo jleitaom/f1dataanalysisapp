@@ -2,7 +2,7 @@
 
 > ### ⚠️ The hosted app has been taken down
 >
-> This app used to run on Streamlit Community Cloud. It no longer does, because the Formula 1 livetiming API now refuses requests coming from datacenter IP ranges — which is what every cloud platform runs on.
+> This app used to run on Streamlit Community Cloud. It no longer does, because the Formula 1 livetiming API now refuses requests coming from datacenter IP ranges - which is what every cloud platform runs on.
 >
 > Rather than leave a live demo that greets visitors with an error, I took the deployment down. 
 >**The app is still functional when run locally!!**
